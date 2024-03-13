@@ -90,7 +90,7 @@ z_tail = 1.0216 + b_v  # Height of the tail
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 2.6
+x_debut_wing = 2.9
 x_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w) # Assumption : CG of the wing at the position of the AC of the wing
 
 x_debut_tail = l_fus-c_v_root
@@ -99,15 +99,15 @@ x_t_v = compute_x_ac(x_debut_tail, b_v, lambda_v, sweep_v, c_mac_v) # Assumption
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
 x_t_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h) # Assumption : CG of the tail at the position of the AC of the tail
 
-x_crew1 = 1.335       # crew member 1
-x_crew2 = 2.475       # crew member 2
+x_crew1 = 1.435       # crew member 1
+x_crew2 = 2.575       # crew member 2
 
 x_b_w = x_crew1     # ballast au CG du crew 1
 x_b_t = x_t_v       # ballast au CG du fin
 
 x_fus = 0.45*l_fus         # fuselage
 x_motor = 3.825            # motor                              A MODIFIER !!!!
-x_batteries = 3.4            # batteries                        A MODIFIER !!!!
+x_batteries = 4.5          # batteries                        A MODIFIER !!!!
 x_main_gear = 3.5          # main gear                          A MODIFIER !!!!
 x_gear_2 = l_fus-0.55      # last gear                          A MODIFIER !!!!
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
