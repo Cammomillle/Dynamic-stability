@@ -4,8 +4,6 @@ import control as ct
 from data import *
 from functions import *
 import aerodynamic
-
-"Coucou izlou"
 """
 THE FOLLOWING VALUES ARE VERY SUSPECT THEY MUST DEFINITELY CHANGE !!
 """

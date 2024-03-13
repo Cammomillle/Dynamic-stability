@@ -11,7 +11,7 @@ import matplotlib.patches as mpatches
 # SI UNITS !!!
 g = 9.81    # m/s^2
 rho = 0.909 # at 10,000 feet 
-V_0 = 34.64 # m/s
+V_0 = 28.809 # m/s
 
 #******* Weights [kilograms * g] **********
 W_w = 160*g     # wings
@@ -25,13 +25,13 @@ W_flight_control = 30*g # commandes
 
 #********* Fuselage ***********************
 l_fus = 8.5     # length of the fuselage
-width_fus = 0.7   # Width of the fuselage
-S_fuselage = 11.52    # Surface of the fuselage
-z_nose = 0.45         # Height of the nose
+width_fus = 0.6986   # Width of the fuselage
+S_fuselage = 11.52   # Surface of the fuselage             A MODIFIER !!!!
+z_nose = 0.334       # Height of the nose
 
 #********** Wing **************************
 S_w_total = 18      # total surface of the wing
-S_w = S_w_total/2   # surface of half a wing 
+S_w = S_w_total/2   # surface of half a wing    
 b_w = 20            # Span of the wing
 AR_w = b_w**2/S_w_total # AR of the wing
 lambda_w = 0.4      # Taper ratio of the wing
@@ -64,7 +64,7 @@ sweep_v = np.arctan((0.75*c_v_root + np.tan(8*np.pi/180)*b_v - 0.75*c_v_tip)/b_v
 sweep_v_half = np.arctan((0.5*c_v_root + np.tan(8*np.pi/180)*b_v - 0.5*c_v_tip)/b_v) # Sweep angle of the fin at the half chord
 
 dclF_dbeta = 6.36    # slope of the CL curve for the fin in yaw motion (2D) = a0_v
-dCLF_dbeta = compute_lift_curve_slope(AR_v, dclF_dbeta, sweep_v_half, beta=1)  # slope of the CL curve for the fin in yaw motion (3D) = a_v
+dCLF_dbeta = compute_lift_curve_slope(AR_v*2, dclF_dbeta, sweep_v_half, beta=1)  # slope of the CL curve for the fin in yaw motion (3D) = a_v
 
 #*********** Tail (=empennage horizontal) **************************
 c_h_root = 0.55   # chord at the root of the horizontal empennage
@@ -83,14 +83,14 @@ CD_0_h = 0.014          # same as the wing, from conceptual design, sld 61
 dclh_alpha_h = 6.36     # slope of the CL curve for the tail (2D) for now, same as the fin !!!Re
 dCLh_alpha_h = compute_lift_curve_slope(AR_h, dclh_alpha_h, sweep_h_half, beta=1)  # slope of the C_L of the tail with alpha of the tail   
 
-z_tail= 1.3+z_nose  # Height of the tail
+z_tail = 1.0216 + b_v  # Height of the tail
 
 #********** Position of CGs [meters] *******
 # Compute the x-location of the aerodynamic center from the nose of the sailplane (formula for linearly-tapered wings)
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 3
+x_debut_wing = 2.6
 x_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w) # Assumption : CG of the wing at the position of the AC of the wing
 
 x_debut_tail = l_fus-c_v_root
@@ -99,27 +99,27 @@ x_t_v = compute_x_ac(x_debut_tail, b_v, lambda_v, sweep_v, c_mac_v) # Assumption
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
 x_t_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h) # Assumption : CG of the tail at the position of the AC of the tail
 
-x_crew1 = 1.1       # crew member 1
-x_crew2 = 1.7       # crew member 2
+x_crew1 = 1.335       # crew member 1
+x_crew2 = 2.475       # crew member 2
 
-x_b_w = 8       # ballast au CG de l'aile
-x_b_t = 0       # ballast au CG du fin
+x_b_w = x_crew1     # ballast au CG du crew 1
+x_b_t = x_t_v       # ballast au CG du fin
 
-x_fus = 0.45*l_fus          # fuselage
-x_motor = 3.825            # motor
-x_batteries = 3.825        # batteries
-x_main_gear = 2.5          # main gear
-x_gear_2 = l_fus-0.55      # last gear
-x_gear = (x_main_gear+x_gear_2)/2
+x_fus = 0.45*l_fus         # fuselage
+x_motor = 3.825            # motor                              A MODIFIER !!!!
+x_batteries = 3.4            # batteries                        A MODIFIER !!!!
+x_main_gear = 3.5          # main gear                          A MODIFIER !!!!
+x_gear_2 = l_fus-0.55      # last gear                          A MODIFIER !!!!
+x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
 x_flight_control = x_crew1-0.2 # assumption of 20cm between first pilots and commands
 
 #********** Pitch stability **************
-K_n_low = 0.07      # Stability min to be stable
-K_n_high = 0.23     # Stability max to not be too stable
+K_n_low = 0.05      # Stability min to be stable
+K_n_high = 0.25     # Stability max to not be too stable
 
 #********** Yaw stability ****************
-hf1 = 0.216      # see Conceptual design slide 57
-hf2 = 0.858           
-bf1 = 0.216
-bf2 = 0.858
-h_f_max = 0.9
+hf1 = 0.702+0.285      # see Conceptual design slide 57
+hf2 = 0.2356           
+bf1 = 0.3346+0.342
+bf2 = 0.2
+h_f_max = 0.974
