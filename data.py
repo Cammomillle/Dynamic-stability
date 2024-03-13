@@ -40,6 +40,7 @@ c_w_tip = 0.51429   # Chord of the wing at the tip
 c_mac_w = 2/3 * c_w_root * (1 + lambda_w + lambda_w**2)/(1 + lambda_w)  # mean aerodynamic chord of the wing
 sweep_w = 0        # Sweep angle of the wing (LE sweep angle)
                                                
+a0_w = 6.31206     # dcl_w/dalpha 
 a_w = 5.62704      # dCL_w/dalpha 
 c_m_w = -0.18      # Moment coefficient of the wing
 z_wing = 0.85      # Height of the wing
@@ -90,7 +91,7 @@ z_tail = 1.0216 + b_v  # Height of the tail
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 2.9
+x_debut_wing = 2.95
 x_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w) # Assumption : CG of the wing at the position of the AC of the wing
 
 x_debut_tail = l_fus-c_v_root
@@ -106,8 +107,8 @@ x_b_w = x_crew1     # ballast au CG du crew 1
 x_b_t = x_t_v       # ballast au CG du fin
 
 x_fus = 0.45*l_fus         # fuselage
-x_motor = 3.825            # motor                              A MODIFIER !!!!
-x_batteries = 4.5          # batteries                        A MODIFIER !!!!
+x_motor = 4.               # motor                              A MODIFIER !!!!
+x_batteries = 4.4          # batteries                        A MODIFIER !!!!
 x_main_gear = 3.5          # main gear                          A MODIFIER !!!!
 x_gear_2 = l_fus-0.55      # last gear                          A MODIFIER !!!!
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
