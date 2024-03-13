@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 import control as ct 
 from data import *
 from functions import *
-import aerodynamic
 """
 THE FOLLOWING VALUES ARE VERY SUSPECT THEY MUST DEFINITELY CHANGE !!
 """
@@ -26,9 +25,6 @@ if(W_b!=0):
 T=-4.8+273.15 #temperature at 10000 ft ! -> shit ass guess !
 R=287 #J/kg/k pour l'air
 W=compute_total_mass(W_b,W_crew1,W_crew2)
-2*W/(rho*V0**2*S_w_total)
-print("CL",CL)
-print("CL de aho",)
 """
    Comments: what about alpha, alpha_0 in u_derivatives ?  
              Add the swept angle lambda at c/4 and c/2 somewhere in the beginning of the code !
