@@ -15,8 +15,8 @@ V_0 = 28.809 # m/s
 
 #******* Weights [kilograms * g] **********
 W_w = 160*g     # wings
-W_t_h = 10*g    # tail horizontal
-W_t_v = 20*g    # tail vertical
+W_t_h = 10*g    # tail horizontale
+W_t_v = 20*g    # tail verticale
 W_fus = 90*g    # fuselage
 W_motor = 20*g      # motor
 W_batteries = 80*g  # batteries
@@ -108,7 +108,7 @@ x_b_t = x_t_v       # ballast au CG du fin
 
 x_fus = 0.45*l_fus         # fuselage
 x_motor = 4.               # motor                              A MODIFIER !!!!
-x_batteries = 4.4          # batteries                        A MODIFIER !!!!
+x_batteries = 4.5          # batteries                          A MODIFIER !!!!
 x_main_gear = 3.5          # main gear                          A MODIFIER !!!!
 x_gear_2 = l_fus-0.55      # last gear                          A MODIFIER !!!!
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
