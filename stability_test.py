@@ -29,8 +29,8 @@ W_b_w = 0*g     # ballasts at wing
 W_b_t = 15*g     # ballasts at tail
 W_b = W_b_w + W_b_t  # ballasts total weight
 
-W_crew1 = 80*g   # 1 st crew
-W_crew2 = 80*g   # 2 nd crew
+W_crew1 = 123*g   # 1 st crew
+W_crew2 = 123*g   # 2 nd crew
 
 #******* CG of the ballasts **********
 x_b = 0
@@ -43,8 +43,8 @@ def round_formatter(value, pos):
 def plot_results(x_cg_enveloppe,x_cg_empty,x_cg_no_ballasts,x_cg_ballasts, h_n):
     x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)
     x_n = (h_n*c_mac_w+x_le_wing)
-    x_cg_min = compute_x_cg(0, 0, 40*g, 0) # CG position for 1 crew of 90lb
-    x_cg_max = compute_x_cg(60*g, x_t_v, 122.5*g, 122.5*g) # CG position for 2 crews of 270lb each
+    x_cg_min = compute_x_cg(45*g, x_crew1, 40*g, 0) # CG position for 1 crew of 90lb
+    x_cg_max = compute_x_cg(15*g, x_t_v, 122.5*g, 122.5*g) # CG position for 2 crews of 270lb each
     plt.scatter([x_cg_enveloppe[0]*3.28084,x_cg_enveloppe[1]*3.28084],[0,0],label="Static margin range",color="darkorange", s=80)
     #plt.scatter(x_cg_empty*3.28084,0,label="Empty CG",color="purple")
     #plt.scatter(x_cg_no_ballasts*3.28084,0,label="CG with crew")
@@ -98,11 +98,6 @@ def x_cg_enveloppe(h_n): # computation of the CG enveloppe diagram
     return x_cg_low, x_cg_high
     
 def ballast_positions():
-            W_crew=W_crew1+W_crew2
-            x_crew=0
-            if(W_crew!=0):
-                x_crew=(W_crew1*x_crew1+W_crew2*x_crew2)/W_crew
-
             # On calcule le x_cg sans ballasts et on vérifie la stabilité
             W_b=0
             x_b=0
@@ -116,7 +111,7 @@ def ballast_positions():
                 return x_cg
             if is_kn_ok==False:
               m_lim_tot=60 #Total ballast weight admissible
-              m_lim_tail=30 #Maximum ballast weight at the tail 
+              m_lim_tail=15 #Maximum ballast weight at the tail 
               m_lim_crew=m_lim_tot-m_lim_tail #Maximum ballast weight under the crew
               mb1=np.arange(0,m_lim_crew+1,7.5)*g
               mb2=np.arange(0,m_lim_tail+1,7.5)*g
@@ -157,7 +152,7 @@ def ballast_positions():
                   print("No stable configurations with ballasts")
                   return x_cg
               else:
-                  print("Ballasts: {0} kg at the wing CG and ".format(w_b_1/g)+"{0} kg at the tail CG ".format(w_b_2/g))
+                  print("Ballasts: {0} kg under crew1 seat and ".format(w_b_1/g)+"{0} kg at the tail CG ".format(w_b_2/g))
                   return x_cg_ballast          
 
 def yaw_stability(l_cg, l_F): # see Conceptual design slides 56-57
@@ -181,6 +176,7 @@ total_mass = compute_total_mass(W_b, W_crew1, W_crew2)
 x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
 #print("CG of the sailplane: ", x_cg, "m")
 print("CG of the wing: ", x_w, "m")
+print("CG of the  sailplane before ballasts computation: ", x_cg, "m")
 
 # CG of the empty sailplane (i.e., without ballasts and crew)
 x_cg_empty = compute_x_cg_empty()
@@ -206,7 +202,7 @@ K_n=compute_K_n(h_n, h)
 print("Pitch stability Kn: ", K_n, "[-]")
 
 # Pitch stability diagram 
-#plot_results(x_cg_enveloppe,x_cg_empty,x_cg,x_cg, h_n)
+plot_results(x_cg_enveloppe,x_cg_empty,x_cg,x_cg, h_n)
 
 # Yaw stability 
 l_F = x_t_v - x_w # (see Conceptual Design slide 56)

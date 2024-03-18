@@ -27,7 +27,7 @@ W_crew1 = 80*g   # 1 st crew
 W_crew2 = 80*g   # 2 nd crew
 
 #compute the ballasts' positions and weights given the weight of the passenger
-def ballast_positions(x_crew1,x_crew2, W_w, x_w, W_t_h, x_t_h, W_t_v, x_t_v, W_fus, x_fus, W_motor, x_motor, W_gear, x_gear, x_ac_w, x_b_w, x_b_t,W_crew1,W_crew2, print_T=True):
+def ballast_positions(x_crew1,x_crew2, x_b_w, x_b_t, W_crew1, W_crew2, print_T=True):
     w_b_1=w_b_2=0
     W_crew=W_crew1+W_crew2
     x_crew=0
@@ -203,7 +203,7 @@ def Equilibrium_validation(alpha, W_crew11, W_crew22, print_T=True):
     Delta_Moment_wo_b=M_0+L_w*(h-h_0)*c_mac_w-L_T*l_T+M_T
 
     #Avec ballast
-    W_ballast1, W_ballast2=ballast_positions(x_crew1,x_crew2, W_w, x_w, W_t_h, x_t_h, W_t_v, x_t_v, W_fus, x_fus, W_motor, x_motor, W_gear, x_gear, x_ac_w, x_b_w, x_b_t,W_crew11,W_crew22, print_T)
+    W_ballast1, W_ballast2=ballast_positions(x_crew1,x_crew2, x_b_w, x_b_t, W_crew11, W_crew22, print_T)
     #W_ballast1=W_ballast1
     W_total=compute_total_mass((W_ballast1 + W_ballast2), W_crew11, W_crew22)
     print("W_tot: ", W_total)
@@ -237,7 +237,7 @@ def Equilibrium_validation(alpha, W_crew11, W_crew22, print_T=True):
 
 #print(Lift_horizontal_stabiliser(5))
 min_w=70
-max_w=130
+max_w=120
 step=10
 
 def Equilibrium_testing(alpha, print_T=False):
@@ -252,7 +252,7 @@ def Equilibrium_testing(alpha, print_T=False):
     return tab, lift_tail
 print_T=False
 print(print_T)
-alpha_tab=[0, -1.5, -3, -4]
+alpha_tab=[0, -2, -3, -4]
 t1, lift_tail_1=Equilibrium_testing(alpha_tab[0], print_T)
 t2, lift_tail_2=Equilibrium_testing(alpha_tab[1], print_T)
 t3, lift_tail_3=Equilibrium_testing(alpha_tab[2], print_T)

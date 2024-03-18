@@ -66,3 +66,4 @@ def compute_h(x_cg):
     return h
 
 
+print(compute_total_mass(15*g, 123*g, 123*g)/9.81)

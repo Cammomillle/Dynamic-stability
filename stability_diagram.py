@@ -47,7 +47,7 @@ def cg_diag():
                 plt.scatter(W_crew2[j]/(0.4536*g),W_crew1[i]/(0.4536*g),color='#7db928')
 
             if is_kn_ok==False:
-              m_lim_tot=75 #Total ballast weight admissible
+              m_lim_tot=60 #Total ballast weight admissible
               m_lim_tail=15 #Maximum ballast weight at the tail 
               m_lim_crew=m_lim_tot-m_lim_tail #Maximum ballast weight under the crew
               mb1=np.arange(0,m_lim_crew+1,7.5)*g
