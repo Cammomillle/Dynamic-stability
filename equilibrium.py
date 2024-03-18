@@ -113,18 +113,18 @@ def Lift_horizontal_stabilizer(alpha):
     c_l_alpha=dclh_alpha_h
     
     C_L_max=k_s*c_l_max_root    
-    L_max=0.5*rho*V_0**2*S_emp*C_L_max
+    L_max=0.5*rho*V0**2*S_emp*C_L_max
     
     #Wing lift (empennage) for unswept wing (slide 120 L1 aéro)
     E=1+2*lambda_h/(AR*(1+lambda_h))
     C_L_alpha=.995*c_l_alpha/(E+c_l_alpha/(np.pi*AR))   
     
     C_L=alpha*C_L_alpha
-    L=0.5*rho*V_0**2*S_emp*C_L
+    L=0.5*rho*V0**2*S_emp*C_L
     
     #Wing lift (empennage) for swept wing (slide 121 L1 aéro)
     C_L2=alpha*Wing_lift_curve_slope(AR, c_l_alpha, sweep_h_half)
-    L2=0.5*rho*V_0**2*S_emp*C_L2
+    L2=0.5*rho*V0**2*S_emp*C_L2
     
     #print("\n for alpha= ", alpha*180/np.pi,"C_L= ", C_L, "C_L_2= ", C_L2, "L_max= ", L_max)
     return L2, C_L2
@@ -137,7 +137,7 @@ def Drag_horizontal_stabilizer(alpha, C_L):
     S_emp=S_h
     C_D_0=CD_0_h     # we take the same value as for the wing
     C_D=C_D_0+C_L**2/(e*np.pi*AR)   
-    D_horiz=0.5*rho*V_0**2*S_emp*C_D
+    D_horiz=0.5*rho*V0**2*S_emp*C_D
     return D_horiz
 
 #first version, not used for now
@@ -166,14 +166,14 @@ def compute_c_ac(taper, c_root=c_w_root):
 def compute_moments_2():
     #pour la wing, c_m ~ -0.18 (quarter chord)
     c_ac=compute_c_ac(lambda_w, c_w_root)
-    M_wing_AC = 0.5*rho*V_0**2*S_w_total*c_ac*c_m_w
+    M_wing_AC = 0.5*rho*V0**2*S_w_total*c_ac*c_m_w
     #print(M_wing_AC)
     
     #pour l'empennage, c_m ~ 0 (1ere approx, cf airfoil tools, Re=1.000.000) !!!(quarter chord)
     c_m=0 
     c_ac=compute_c_ac(lambda_h, c_h_root)
     #print("xxxx",c_ac)
-    M_h_ac=0.5*rho*V_0**2*S_h*c_ac*c_m
+    M_h_ac=0.5*rho*V0**2*S_h*c_ac*c_m
     #print(M_wing_AC, M_h_ac)
     return M_wing_AC, M_h_ac
 
@@ -296,8 +296,6 @@ print(lift_tail_1, lift_tail_2, lift_tail_3, lift_tail_4)
 print("zzzzzzzzzzzzzzzzzzzzzzzzzz")
 Equilibrium_validation(0, 80*g, 80*g)
 
-
-
-
+print(Lift_horizontal_stabilizer(-2))
 
 

@@ -11,7 +11,8 @@ import matplotlib.patches as mpatches
 # SI UNITS !!!
 g = 9.81    # m/s^2
 rho = 0.909 # at 10,000 feet 
-V_0 = 28.809 # m/s
+V0 = 28.809 # m/s
+gamma = 1.4 
 
 #******* Weights [kilograms * g] **********
 W_w = 160*g     # wings
@@ -39,12 +40,15 @@ c_w_root = 1.28571  # Chord of the wing at the root
 c_w_tip = 0.51429   # Chord of the wing at the tip
 c_mac_w = 2/3 * c_w_root * (1 + lambda_w + lambda_w**2)/(1 + lambda_w)  # mean aerodynamic chord of the wing
 sweep_w = 0        # Sweep angle of the wing (LE sweep angle)
-                                               
+sweep_w_half = 0
+
 a0_w = 6.31206     # dcl_w/dalpha 
 a_w = 5.62704      # dCL_w/dalpha 
+alpha_0 = -5.88608*np.pi/180 # zero lift angle [radians]
 c_m_w = -0.18      # Moment coefficient of the wing
 z_wing = 0.85      # Height of the wing
 aoa_w = 0          # AoA in configuration 1
+e_w = 0.895        # Ostwald number
 L_w = 6864.655     # Lift from the wing in configuration 1
 D_w = 198.99029    # Drag from the wing in configuration 1
 
@@ -83,8 +87,8 @@ sweep_h_half = np.arctan(0.5*(c_h_root-c_h_tip)/(b_h/2)) # Sweep angle of the ho
 CD_0_h = 0.014          # same as the wing, from conceptual design, sld 61
 dclh_alpha_h = 6.36     # slope of the CL curve for the tail (2D) for now, same as the fin !!!Re
 dCLh_alpha_h = compute_lift_curve_slope(AR_h, dclh_alpha_h, sweep_h_half, beta=1)  # slope of the C_L of the tail with alpha of the tail   
-
-z_tail = 1.0216 + b_v  # Height of the tail
+i_h = -2*np.pi/180      # horizontal stabilizer incidence
+z_tail = 1.0216 + b_v   # Height of the tail
 
 #********** Position of CGs [meters] *******
 # Compute the x-location of the aerodynamic center from the nose of the sailplane (formula for linearly-tapered wings)
