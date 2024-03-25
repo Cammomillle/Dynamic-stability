@@ -64,6 +64,3 @@ def compute_h(x_cg):
     x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) # x-location of the LE of the projected airfoil of the wing
     h=(x_cg-x_le_wing)/c_mac_w # by definition !
     return h
-
-
-print(compute_total_mass(15*g, 123*g, 123*g)/9.81)

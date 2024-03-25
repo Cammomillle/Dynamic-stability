@@ -194,7 +194,6 @@ def Equilibrium_validation(alpha, W_crew11, W_crew22, print_T=True):
     h=compute_h(x_cg)
     x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)
     h_0=(x_w-x_le_wing)/c_mac_w
-    x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w)
     
     l_T=x_t_h-x_cg     
     M_0, M_T=compute_moments_2() #calcul les moments de la wing et de l'empennage (sens positif pour le nez de l'avion qui monte)

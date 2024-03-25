@@ -1,6 +1,8 @@
 import numpy as np 
 from matplotlib import pyplot as plt 
 import control as ct 
+import pos_ellipse as pe
+
 from data import *
 from functions import *
 
@@ -8,7 +10,7 @@ from functions import *
 THE FOLLOWING VALUES ARE VERY SUSPECT THEY MUST DEFINITELY CHANGE !!
 """
 CD0=0.014
-eta_h = 0.95 # slide 19 DATCOM (entre 0.9-1)
+eta_h = 0.9 # slide 19 DATCOM (entre 0.9-1)
 x_ac_t_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h) 
 
 """  END OF SUSPECT VALUES """
@@ -23,7 +25,7 @@ W_crew2 = 80*g   # 2 nd crew
 x_b = 0
 if(W_b!=0):
     x_b = (W_b_w*x_b_w + W_b_t*x_b_t)/W_b
-T=-4.8+273.15 #temperature at 10000 ft ! -> shit ass guess !
+T=-4.8+273.15 #temperature at 10 000 ft ! -> shit ass guess !
 R=287 #J/kg/k pour l'air
 W=compute_total_mass(W_b,W_crew1,W_crew2)
 
@@ -95,6 +97,11 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e):
     CD_q, CL_q, CM_q = q_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
     CD_alpha_dot, CL_alpha_dot, CM_alpha_dot = alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
 
+    L_e = compute_total_mass(W_b, W_crew1, W_crew2)
+    D_e = 170.378 #N
+    C_ze = (-L_e*np.cos(alpha_e) - D_e*np.sin(alpha_e))/(0.5*rho*V0**2*S_w_total)
+    C_xe = L_e*np.sin(alpha_e) - D_e*np.cos(alpha_e)/(0.5*rho*V0**2*S_w_total)
+    
     X_u = CL_u*np.sin(alpha_e) - CD_u*np.cos(alpha_e)
     X_w = 1/(np.cos(alpha_e))*(-C_ze+CL_alpha*np.sin(alpha_e) - CD_alpha*np.cos(alpha_e))
     X_q = CL_q*np.sin(alpha_e) - CD_q*np.cos(alpha_e)
@@ -260,8 +267,42 @@ def alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
 
     return CD_alpha_dot, CL_alpha_dot, CM_alpha_dot
 
+def l_H():
+    return x_ac_h - x_ac_w
+
+def downwash(x_cg):
+    l_T = x_ac_t_h - x_cg
+    V_t_bar = (l_T*S_h)/(S_w_total*c_mac_w)
+    m = 2*(z_tail-z_wing)/b_w
+    grad_downwash = 1.75*a_w/(np.pi * AR_w * ((2*lambda_w*l_T)/b_w)**0.25*(1+abs(m)))
+    return grad_downwash
+
 # We start to evaluate lateral derivatives here ! 
 def sidewash_derivative():
     Z_w = 0.5 # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER !!!
     d = np.sqrt(0.595/0.7854)     # A MODIFER, valeur maximale non moyenne !!! 
     sigma_beta = -0.276 + 3.06*S_fin/S_w_total*1/(1+np.cos(sweep_w)) + 0.4*Z_w/d + 0.009*AR_w # slide 13 L13
+
+def body_sum(x_cg):
+    dXi = 0.01
+    frames = np.arange(pe.pos[0], pe.pos[-1], dXi)
+
+    figure11 = np.loadtxt('LongData/Figure1_1.csv')
+    figure12 = np.loadtxt('LongData/Figure1_2.csv')
+    
+    x_wing_ac = 2.950 + 1.255/4
+    global_dwash = dwash(x_cg)
+    lh = l_H(c_cg)
+
+    ret = 0.0
+    for frame in frames:
+        Wf = 2*pe.b_i(frame)
+
+        if frame < x_wing_ac:
+            dwash = (1 - global_dwash)*frame/lh
+        else:
+            dwash = 0.0
+        
+        ret += Wf**2 * dwash * dXi
+    
+    return ret

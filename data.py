@@ -27,7 +27,7 @@ W_flight_control = 30*g # commandes
 #********* Fuselage ***********************
 l_fus = 8.5     # length of the fuselage
 width_fus = 0.6986   # Width of the fuselage
-S_fuselage = 11.52   # Surface of the fuselage             A MODIFIER !!!!
+S_fuselage = 12.0816 # Surface of the fuselage             A MODIFIER !!!!
 z_nose = 0.334       # Height of the nose
 
 #********** Wing **************************
@@ -40,7 +40,7 @@ c_w_root = 1.28571  # Chord of the wing at the root
 c_w_tip = 0.51429   # Chord of the wing at the tip
 c_mac_w = 2/3 * c_w_root * (1 + lambda_w + lambda_w**2)/(1 + lambda_w)  # mean aerodynamic chord of the wing
 sweep_w = 0        # Sweep angle of the wing (LE sweep angle)
-sweep_w_half = 0
+sweep_w_half = -2.2089*np.pi/180
 
 a0_w = 6.31206     # dcl_w/dalpha 
 a_w = 5.62704      # dCL_w/dalpha 
@@ -96,12 +96,16 @@ def compute_x_ac(x_LE, b, taper, sweep, c_mac):
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
 x_debut_wing = 3.
+x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w)
 x_w = x_debut_wing + 0.428
 
 x_debut_tail = l_fus-c_v_root
+x_ac_v = compute_x_ac(x_debut_tail, b_v, lambda_v, sweep_v, c_mac_v)
 x_t_v = x_debut_tail + 0.62
+print(x_debut_tail)
 
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
+x_ac_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h)
 x_t_h = x_debut_tail_h + 0.276
 
 x_crew1 = 1.435       # crew member 1
@@ -128,3 +132,8 @@ hf2 = 0.2356
 bf1 = 0.3346+0.342
 bf2 = 0.2
 h_f_max = 0.974
+
+
+
+# Dynamic stability 
+alpha_e = 0 
