@@ -95,15 +95,16 @@ z_tail = 1.0216 + b_v   # Height of the tail
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 2.95
-x_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w) # Assumption : CG of the wing at the position of the AC of the wing
+x_debut_wing = 3.
+x_w = x_debut_wing + 0.428
 
 x_debut_tail = l_fus-c_v_root
-x_t_v = compute_x_ac(x_debut_tail, b_v, lambda_v, sweep_v, c_mac_v) # Assumption : CG of the fin at the position of the AC of the fin
+x_t_v = x_debut_tail + 0.62
 
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
-x_t_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h) # Assumption : CG of the tail at the position of the AC of the tail
+x_t_h = x_debut_tail_h + 0.276
 
+print(x_w, x_t_v, x_t_h)
 x_crew1 = 1.435       # crew member 1
 x_crew2 = 2.575       # crew member 2
 
