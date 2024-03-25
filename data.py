@@ -104,7 +104,6 @@ x_t_v = x_debut_tail + 0.62
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
 x_t_h = x_debut_tail_h + 0.276
 
-print(x_w, x_t_v, x_t_h)
 x_crew1 = 1.435       # crew member 1
 x_crew2 = 2.575       # crew member 2
 
