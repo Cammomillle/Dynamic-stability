@@ -68,6 +68,7 @@ c_mac_v = 2/3 * c_v_root * (1 + lambda_v + lambda_v**2)/(1 + lambda_v)  # mean a
 AR_v = b_v**2/S_fin   # AR of the horizontal empennage
 sweep_v = np.arctan((0.75*c_v_root + np.tan(8*np.pi/180)*b_v - 0.75*c_v_tip)/b_v)  # Sweep angle of the fin (LE sweep angle)
 sweep_v_half = np.arctan((0.5*c_v_root + np.tan(8*np.pi/180)*b_v - 0.5*c_v_tip)/b_v) # Sweep angle of the fin at the half chord
+sweep_v_le = 22.16*np.pi/180
 
 dclF_dbeta = 6.36    # slope of the CL curve for the fin in yaw motion (2D) = a0_v
 dCLF_dbeta = compute_lift_curve_slope(AR_v*2, dclF_dbeta, sweep_v_half, beta=1)  # slope of the CL curve for the fin in yaw motion (3D) = a_v
@@ -83,11 +84,13 @@ c_mac_h = 2/3 * c_h_root * (1 + lambda_h + lambda_h**2)/(1 + lambda_h)  # mean a
 AR_h = b_h**2/S_h   # AR of the horizontal empennage
 sweep_h = np.arctan((0.75*(c_h_root-c_h_tip))/(b_h/2)) # Sweep angle of the horizontal empennage
 sweep_h_half = np.arctan(0.5*(c_h_root-c_h_tip)/(b_h/2)) # Sweep angle of the horizontal empennage at the half chord
+sweep_h_le = 5.71*np.pi/180
 
 #Re=879.000 for the horizontal stabilizer. With airfool tools, at Re=1.000.000:
 CD_0_h = 0.014          # same as the wing, from conceptual design, sld 61
 dclh_alpha_h = 6.36     # slope of the CL curve for the tail (2D) for now, same as the fin !!!Re
 dCLh_alpha_h = compute_lift_curve_slope(AR_h, dclh_alpha_h, sweep_h_half, beta=1)  # slope of the C_L of the tail with alpha of the tail   
+print(dCLh_alpha_h)
 i_h = -2*np.pi/180      # horizontal stabilizer incidence
 z_tail = 1.0216 + b_v   # Height of the tail
 
@@ -101,11 +104,11 @@ x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w_le, c_mac_w)
 x_w = x_debut_wing + 0.428
 
 x_debut_tail = l_fus-c_v_root
-x_ac_v = compute_x_ac(x_debut_tail, b_v, lambda_v, sweep_v, c_mac_v)
+x_ac_v = compute_x_ac(x_debut_tail, b_v, lambda_v, sweep_v_le, c_mac_v)
 x_t_v = x_debut_tail + 0.62
 
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
-x_ac_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h)
+x_ac_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h_le, c_mac_h)
 x_t_h = x_debut_tail_h + 0.276
 
 x_crew1 = 1.435       # crew member 1
