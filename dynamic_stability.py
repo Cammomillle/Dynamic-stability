@@ -2,7 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt 
 import control as ct 
 import pos_ellipse as pe
-
+from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
 from data import *
 from functions import *
 
@@ -100,7 +101,7 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e):
     L_e = compute_total_mass(W_b, W_crew1, W_crew2)
     D_e = 170.378 #N
     C_ze = (-L_e*np.cos(alpha_e) - D_e*np.sin(alpha_e))/(0.5*rho*V0**2*S_w_total)
-    C_xe = L_e*np.sin(alpha_e) - D_e*np.cos(alpha_e)/(0.5*rho*V0**2*S_w_total)
+    C_xe = (L_e*np.sin(alpha_e) - D_e*np.cos(alpha_e))/(0.5*rho*V0**2*S_w_total)
     
     X_u = CL_u*np.sin(alpha_e) - CD_u*np.cos(alpha_e)
     X_w = 1/(np.cos(alpha_e))*(-C_ze+CL_alpha*np.sin(alpha_e) - CD_alpha*np.cos(alpha_e))
@@ -129,37 +130,51 @@ def compute_inertias():
 "----------------------------------------------DATCOM derivatives--------------------------------"
 def CL_alpha_wing(M):
     beta=np.sqrt(1-M**2)
-    k=a0_w/(2*np.pi)
+    k=a0_w/2/np.pi 
     CL_alphaW=(2*np.pi*AR_w)/(2+np.sqrt((AR_w*beta/k)**2*(1+np.tan(sweep_w_half)**2/beta**2)+4))
+
     return CL_alphaW
 
 def CL_alpha_tail_horizontal(M):
     beta=np.sqrt(1-M**2)
-    k=dclh_alpha_h/(2*np.pi) 
-    CL_alphaH=(2*np.pi*AR_v)/(2+np.sqrt((AR_v*beta/k)**2*(1+np.tan(sweep_h_half)**2/beta**2)+4))
+    k=dclh_alpha_h/2/np.pi 
+    CL_alphaH=(2*np.pi*AR_h)/(2+np.sqrt((AR_h*beta/k)**2*(1+np.tan(sweep_h_half)**2/beta**2)+4))
+
     return CL_alphaH
 
 def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     " SLIDE 19 DATCOM "
     " DIAMETRE FUSELAGE PUE DU CUL ON A PRIS EPAISSEUR FUSELAGE A LA PLACE MAIS CEST NUL!!!!"
     
+    dCLh_alpha_h = CL_alpha_tail_horizontal(0)
+    a_w = CL_alpha_wing(0)
+    x_cg=compute_x_cg(W_b,x_b,W_crew1,W_crew2)
+
     #CL derivative
     CL=compute_CL(V0)
-    grad_downwash = grad_downwash()
-    d=width_fus
+    d=0.4956851278
     K_WB=1-0.25*(d/b_w)**2+0.025*(d/b_w)
-    CL_alpha_WB=K_WB*a_w #KWB*Cl_alpha_wing 
+    grad_downwash = downwash()
+    CL_alpha_WB=K_WB*a_w #KWB*Cl_alpha_wing
+    print('CL_alpha_WB', CL_alpha_WB)
+    print('dCLh_alpha_h', dCLh_alpha_h)
+    print('grad_downwash', grad_downwash)
     CL_alpha=CL_alpha_WB+dCLh_alpha_h*eta_h*S_h/S_w_total*(1-grad_downwash)
-    x_acwb=x_w
-    x_ach=x_t_h
-    num=x_acwb+dCLh_alpha_h/CL_alpha_WB * eta_h * S_h/S_w_total * x_ach *(1-grad_downwash)
+
+    M_alpha = 0.5*rho*V0**2 / 36.5 * body_sum(0, x_cg)
+    d_xac = -M_alpha / (0.5*rho*V0**2 * S_w_total * CL_alpha_wing(0))
+    x_acwb=x_ac_w+d_xac
+    num=x_acwb+dCLh_alpha_h/CL_alpha_WB * eta_h * S_h/S_w_total * x_ac_h * (1-grad_downwash)
+    print('x_ac_h', x_ac_h)
+    print('x_ac_w', x_ac_w)
     den=1+dCLh_alpha_h/CL_alpha_WB * eta_h * S_h/S_w_total * (1-grad_downwash)
     x_ac=num/den
     "On n'a pas tenu compte des effets du body -> check slide 22-23 DATCOM"
-    x_cg=compute_x_cg(W_b,x_b,W_crew1,W_crew2)
     
     #CM derivative
-    CM_alpha=(x_cg-x_ac)*CL_alpha
+    K = -(x_cg-x_ac)/c_mac_w
+    print('Stability margin', K)
+    CM_alpha=-K*CL_alpha
 
     #CD derivative
     CD_alpha=2*CL*CL_alpha/(np.pi*AR_w*e_w)
@@ -276,26 +291,35 @@ def sidewash_derivative():
     d = np.sqrt(0.595/0.7854)     # A MODIFER, valeur maximale non moyenne !!! 
     sigma_beta = -0.276 + 3.06*S_fin/S_w_total*1/(1+np.cos(sweep_w)) + 0.4*Z_w/d + 0.009*AR_w # slide 13 L13
 
-def body_sum(x_cg):
-    dXi = 0.01
-    frames = np.arange(pe.pos[0], pe.pos[-1], dXi)
+def body_sum(M, x_cg):
+    dXi = 0.1
+    frames = np.arange(pe.pos[0]/1000, pe.pos[-1]/1000, dXi)
 
-    figure11 = np.loadtxt('LongData/Figure1_1.csv')
-    figure12 = np.loadtxt('LongData/Figure1_2.csv')
+    def hyperbole(x, a, b, c):
+        return b/x**a + c
+
+    figure11 = np.genfromtxt('LongData/Figure1_1.csv', delimiter=',')
+    Rfigure11 = curve_fit(hyperbole, figure11[:,0], figure11[:,1])[0]
+    figure12 = np.genfromtxt('LongData/Figure1_2.csv', delimiter=',')
+    Rfigure12 = curve_fit(hyperbole, figure12[:,0], figure12[:,1])[0]
     
-    x_wing_ac = 2.950 + 1.255/4
-    global_dwash = dwash(x_cg)
-
+    x_wing_ac = x_debut_wing + c_mac_w/4
+    global_dwash = downwash()
 
     ret = 0.0
     for frame in frames:
-        Wf = 2*pe.b_i(frame)
+        Wf = 2*pe.b_i(frame*1000)/1000
 
-        if frame < x_wing_ac:
-            dwash = (1 - global_dwash)*frame/lh
+        if frame < x_debut_wing:
+            dwash = (1 - global_dwash)*(x_debut_wing - frame)/l_H
+        elif frame > x_debut_wing + c_w_root:
+            xicf = (frame - x_debut_wing - c_w_root)/c_w_root
+            dwash = hyperbole(xicf, *Rfigure11) * CL_alpha_wing(0) / (0.08 * 180 / np.pi)
         else:
             dwash = 0.0
-        
+
         ret += Wf**2 * dwash * dXi
     
     return ret
+
+long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e)

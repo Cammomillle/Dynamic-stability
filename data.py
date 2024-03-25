@@ -97,7 +97,7 @@ def compute_x_ac(x_LE, b, taper, sweep, c_mac):
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
 x_debut_wing = 3.
-x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w)
+x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w_le, c_mac_w)
 x_w = x_debut_wing + 0.428
 
 x_debut_tail = l_fus-c_v_root
