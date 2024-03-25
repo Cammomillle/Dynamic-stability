@@ -120,7 +120,6 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e):
     return X_u, X_w, X_q, X_w_dot, Z_u, Z_w, Z_q, Z_w_alpha_dot, M_u, M_q, M_w, M_w_dot
 
 def lat_derivatives():
-
     return
 "----------------------------------------------Inertias------------------------------------------"    
 
@@ -130,15 +129,14 @@ def compute_inertias():
 "----------------------------------------------DATCOM derivatives--------------------------------"
 def CL_alpha_wing(M):
     beta=np.sqrt(1-M**2)
-    k=a_w/2*np.pi 
-    CL_alphaW=(2*np.pi*AR_w)/(2+np.sqrt((AR_w*beta/k)**2*(1+np.tan(sweep_w_half)**2/beta**2)+1))
+    k=a0_w/(2*np.pi)
+    CL_alphaW=(2*np.pi*AR_w)/(2+np.sqrt((AR_w*beta/k)**2*(1+np.tan(sweep_w_half)**2/beta**2)+4))
     return CL_alphaW
 
 def CL_alpha_tail_horizontal(M):
     beta=np.sqrt(1-M**2)
-    k=dclh_alpha_h/2*np.pi 
-    CL_alphaH=(2*np.pi*AR_v)/(2+np.sqrt((AR_v*beta/k)**2*(1+np.tan(sweep_h_half)**2/beta**2)+1))
-
+    k=dclh_alpha_h/(2*np.pi) 
+    CL_alphaH=(2*np.pi*AR_v)/(2+np.sqrt((AR_v*beta/k)**2*(1+np.tan(sweep_h_half)**2/beta**2)+4))
     return CL_alphaH
 
 def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
@@ -147,10 +145,7 @@ def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     
     #CL derivative
     CL=compute_CL(V0)
-    m = 2*(z_tail-z_wing)/b_w
-    x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
-    l_T = x_ac_t_h - x_cg
-    grad_downwash = 1.75*a_w/(np.pi * AR_w * ((2*lambda_w*l_T)/b_w)**0.25*(1+abs(m)))
+    grad_downwash = grad_downwash()
     d=width_fus
     K_WB=1-0.25*(d/b_w)**2+0.025*(d/b_w)
     CL_alpha_WB=K_WB*a_w #KWB*Cl_alpha_wing 
@@ -267,15 +262,13 @@ def alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
 
     return CD_alpha_dot, CL_alpha_dot, CM_alpha_dot
 
-def l_H():
-    return x_ac_h - x_ac_w
-
-def downwash(x_cg):
-    l_T = x_ac_t_h - x_cg
-    V_t_bar = (l_T*S_h)/(S_w_total*c_mac_w)
-    m = 2*(z_tail-z_wing)/b_w
-    grad_downwash = 1.75*a_w/(np.pi * AR_w * ((2*lambda_w*l_T)/b_w)**0.25*(1+abs(m)))
-    return grad_downwash
+def downwash():
+    K_A = 1/AR_w - 1/(1+AR_w**1.7)
+    K_lambda = (10-3*lambda_w)/7
+    K_H = (1-h_H/b_w)/(np.sqrt(2*l_H/b_w))
+    grad_down_M0 = 4.44*(K_A*K_lambda*K_H*np.cos(sweep_w))**1.19
+    grad_down = grad_down_M0*1      # approx that CL_alpha,wM/CL_alpha,wM=0 ~ 1
+    return grad_down 
 
 # We start to evaluate lateral derivatives here ! 
 def sidewash_derivative():
@@ -292,7 +285,7 @@ def body_sum(x_cg):
     
     x_wing_ac = 2.950 + 1.255/4
     global_dwash = dwash(x_cg)
-    lh = l_H(c_cg)
+
 
     ret = 0.0
     for frame in frames:

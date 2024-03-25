@@ -39,8 +39,9 @@ lambda_w = 0.4      # Taper ratio of the wing
 c_w_root = 1.28571  # Chord of the wing at the root
 c_w_tip = 0.51429   # Chord of the wing at the tip
 c_mac_w = 2/3 * c_w_root * (1 + lambda_w + lambda_w**2)/(1 + lambda_w)  # mean aerodynamic chord of the wing
-sweep_w = 0        # Sweep angle of the wing (LE sweep angle)
-sweep_w_half = -2.2089*np.pi/180
+sweep_w = -1.105*np.pi/80       # Sweep angle of the wing (quarter chord)
+sweep_w_half = -2.2089*np.pi/180 # Sweep angle of the wing (half chord)
+sweep_w_le = 0  # sweep angle of the wing at the le 
 
 a0_w = 6.31206     # dcl_w/dalpha 
 a_w = 5.62704      # dCL_w/dalpha 
@@ -102,7 +103,6 @@ x_w = x_debut_wing + 0.428
 x_debut_tail = l_fus-c_v_root
 x_ac_v = compute_x_ac(x_debut_tail, b_v, lambda_v, sweep_v, c_mac_v)
 x_t_v = x_debut_tail + 0.62
-print(x_debut_tail)
 
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
 x_ac_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h)
@@ -114,7 +114,8 @@ x_crew2 = 2.575       # crew member 2
 x_b_w = x_crew1     # ballast au CG du crew 1
 x_b_t = x_t_v       # ballast au CG du fin
 
-x_fus = 0.45*l_fus         # fuselage
+#x_fus = 0.45*l_fus         # fuselage 
+x_fus = 3.2           
 x_motor = 4.               # motor                              A MODIFIER !!!!
 x_batteries = 4.5          # batteries                          A MODIFIER !!!!
 x_main_gear = 3.5          # main gear                          A MODIFIER !!!!
@@ -133,7 +134,7 @@ bf1 = 0.3346+0.342
 bf2 = 0.2
 h_f_max = 0.974
 
-
-
 # Dynamic stability 
 alpha_e = 0 
+h_H = 1.646     # vertical distance between x_ac of tail and wing
+l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
