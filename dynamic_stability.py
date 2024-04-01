@@ -8,13 +8,18 @@ from data import *
 from functions import *
 
 """
-THE FOLLOWING VALUES ARE VERY SUSPECT THEY MUST DEFINITELY CHANGE !!
+THE FOLLOWING VALUES MUST CHANGE !!
 """
 CD0=0.014
-eta_h = 0.9 # slide 19 DATCOM (entre 0.9-1)
-x_ac_t_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h) 
+T=-4.8+273.15 #temperature at 10 000 ft ! ->    shit ass guess !!!!
+nu = 1.694*10**(-5) #Ns/m^2
+#rho must be a function of altitude 
+#z_F in data (dynamic stability part)
+# a_rudder to verify
+# "S" in derivatives commputation, not sure wether it is S_w_total or S_w
 
 """  END OF SUSPECT VALUES """
+
 W_b_w = 0*g     # ballasts at wing
 W_b_t = 0*g     # ballasts at tail
 W_b = W_b_w + W_b_t  # ballasts total weight
@@ -26,22 +31,38 @@ W_crew2 = 80*g   # 2 nd crew
 x_b = 0
 if(W_b!=0):
     x_b = (W_b_w*x_b_w + W_b_t*x_b_t)/W_b
-T=-4.8+273.15 #temperature at 10 000 ft ! -> shit ass guess !
+
 R=287 #J/kg/k pour l'air
 W=compute_total_mass(W_b,W_crew1,W_crew2)
+eta_h = 0.9 # slide 19 DATCOM (entre 0.9-1)
 
-"""
-   Comments: what about alpha, alpha_0 in u_derivatives ?  
-             Add the swept angle lambda at c/4 and c/2 somewhere in the beginning of the code !
-             h-h0 in q_derivatives must still be computed
-"""
 "-------------------------------------------------Utilities--------------------------------------"
+def CL_alpha_wing(M):
+    beta=np.sqrt(1-M**2)
+    k=a0_w/(2*np.pi)
+    CL_alphaW=(2*np.pi*AR_w)/(2+np.sqrt((AR_w*beta/k)**2*(1+np.tan(sweep_w_half)**2/beta**2)+4))
+    return CL_alphaW
+
+def CL_alpha_tail_horizontal(M):
+    beta=np.sqrt(1-M**2)
+    k=dclh_alpha_h/(2*np.pi)
+    CL_alphaH=(2*np.pi*AR_h)/(2+np.sqrt((AR_h*beta/k)**2*(1+np.tan(sweep_h_half)**2/beta**2)+4))
+    return CL_alphaH
+
+def CL_beta_tail_vertical(M):
+    beta=np.sqrt(1-M**2)
+    k=dclF_dbeta/(2*np.pi)
+    CL_alphaV=(2*np.pi*AR_v*2)/(2+np.sqrt((AR_v*2*beta/k)**2*(1+np.tan(sweep_v_half)**2/beta**2)+4))    # we multiply the AR_v by two because the formula is valide for a full wing
+    return CL_alphaV/2
+
+def CL_beta_rudder(M):
+    beta=np.sqrt(1-M**2)
+    k=dclF_dbeta/(2*np.pi)
+    CL_alphaR=(2*np.pi*AR_r*2)/(2+np.sqrt((AR_r*2*beta/k)**2*(1+np.tan(sweep_r_half)**2/beta**2)+4))    # we multiply the AR_v by two because the formula is valide for a full wing
+    return CL_alphaR/2
 
 def compute_CL(V_0):
     return 2*W/(rho*V_0**2*S_w_total)
-
-def compute_x_ac(V_0):
-    return 
 
 def compute_response(A,B,C,D,input_,T,X0):
     sys=ct.StateSpace(A,B,C,D)
@@ -123,25 +144,10 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e):
 def lat_derivatives():
     return
 "----------------------------------------------Inertias------------------------------------------"    
-
 def compute_inertias():
     return 
 
-"----------------------------------------------DATCOM derivatives--------------------------------"
-def CL_alpha_wing(M):
-    beta=np.sqrt(1-M**2)
-    k=a0_w/2/np.pi 
-    CL_alphaW=(2*np.pi*AR_w)/(2+np.sqrt((AR_w*beta/k)**2*(1+np.tan(sweep_w_half)**2/beta**2)+4))
-
-    return CL_alphaW
-
-def CL_alpha_tail_horizontal(M):
-    beta=np.sqrt(1-M**2)
-    k=dclh_alpha_h/2/np.pi 
-    CL_alphaH=(2*np.pi*AR_h)/(2+np.sqrt((AR_h*beta/k)**2*(1+np.tan(sweep_h_half)**2/beta**2)+4))
-
-    return CL_alphaH
-
+"----------------------------------------------DATCOM longitudinal derivatives--------------------------------"
 def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     " SLIDE 19 DATCOM "
     " DIAMETRE FUSELAGE PUE DU CUL ON A PRIS EPAISSEUR FUSELAGE A LA PLACE MAIS CEST NUL!!!!"
@@ -150,33 +156,26 @@ def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     a_w = CL_alpha_wing(0)
     x_cg=compute_x_cg(W_b,x_b,W_crew1,W_crew2)
 
-    #CL derivative
+    #---- CL derivative ----
     CL=compute_CL(V0)
     d=0.4956851278
     K_WB=1-0.25*(d/b_w)**2+0.025*(d/b_w)
     grad_downwash = downwash()
     CL_alpha_WB=K_WB*a_w #KWB*Cl_alpha_wing
-    print('CL_alpha_WB', CL_alpha_WB)
-    print('dCLh_alpha_h', dCLh_alpha_h)
-    print('grad_downwash', grad_downwash)
     CL_alpha=CL_alpha_WB+dCLh_alpha_h*eta_h*S_h/S_w_total*(1-grad_downwash)
-
     M_alpha = 0.5*rho*V0**2 / 36.5 * body_sum(0, x_cg)
     d_xac = -M_alpha / (0.5*rho*V0**2 * S_w_total * CL_alpha_wing(0))
     x_acwb=x_ac_w+d_xac
     num=x_acwb+dCLh_alpha_h/CL_alpha_WB * eta_h * S_h/S_w_total * x_ac_h * (1-grad_downwash)
-    print('x_ac_h', x_ac_h)
-    print('x_ac_w', x_ac_w)
     den=1+dCLh_alpha_h/CL_alpha_WB * eta_h * S_h/S_w_total * (1-grad_downwash)
     x_ac=num/den
-    "On n'a pas tenu compte des effets du body -> check slide 22-23 DATCOM"
     
-    #CM derivative
+    #--- CM derivative ----
     K = -(x_cg-x_ac)/c_mac_w
-    print('Stability margin', K)
+    #print('Stability margin', K)
     CM_alpha=-K*CL_alpha
 
-    #CD derivative
+    #--- CD derivative ----
     CD_alpha=2*CL*CL_alpha/(np.pi*AR_w*e_w)
 
     return CD_alpha, CL_alpha, CM_alpha
@@ -184,9 +183,9 @@ def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
 
 def u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha,alpha_0):
     a=np.sqrt(R*gamma*T)
-    Mach=V0/a # Mach number
+    Mach=V0/a 
 
-    #CL derivative
+    #---- CL derivative ----
     CL_alpha_for_mach,CD_alpha,CM_alpha=alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0) #CL_alpha for a given mach M !
        
     CL_for_mach=CL_alpha_for_mach*(alpha-alpha_0)
@@ -200,42 +199,40 @@ def u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha,alpha_0):
     dCD_dM=(CL_plus**2-CL_for_mach**2)/(dM*np.pi*AR_w*e_w) #We assumed that CD0 was independent of M !! -> is it okay ?
     "dCD_dm doit être calculé comme suit : 1) calculer CL pour M et pour M+delta M et en tirer les CD associés depuis la drag polar puis déf de la dérivée "
     
-    #CD derivative
+    #---- CD derivative ----
     CD_u=Mach*dCD_dM
-    
-    "Here we will assume that x_ac_w doesn't move with the mach, which should be fine for low Machs (don't know any better)"
-    #CM derivative
+    "Here we will assume that x_ac_w doesn't move with the mach, which should be fine for low Mach n# (don't know any better)"
+
+    #---- CM derivative ----
     x_ac_plus=x_w
     x_ac_for_mach=x_w 
     dxac_w_dM=x_ac_plus-x_ac_for_mach/dM
     CM_u=-CL_for_mach * dxac_w_dM
+
     return CD_u, CL_u, CM_u
 
 def q_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     a=np.sqrt(R*gamma*T)
     M=V0/a #mach number
     
-    #CD derivative
+    #---- CD derivative ----
     CD_q=0 #DATCOM recommends to neglect it
     
-    #CL derivative
-    "Lambda is the c/4 sweep angle -> ?"
-    "(h-h0)c_mean_mean is the distance between the center of gravity and the wing AC"
-    Lambda=lambda_w
+    #---- CL derivative ----
     x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) # x-location of the LE of the projected c_mac of the wing
     x_ac_w = x_w
     h_0 = (x_ac_w-x_le_wing)/c_mac_w
     x_cg=compute_x_cg(W_b,x_b,W_crew1,W_crew2)
     h=compute_h(x_cg)
-    B=np.sqrt(1-M**2*np.cos(Lambda))
-    CL_qW=(AR_w+2*np.cos(Lambda))/(AR_w*B+2*np.cos(Lambda))*(1/2+2*(h-h_0))*CL_alpha_wing(M=0)
-    l_T = x_ac_t_h - x_cg
+    B=np.sqrt(1-(M*np.cos(sweep_w)**2))
+    CL_qW=(AR_w+2*np.cos(sweep_w))/(AR_w*B+2*np.cos(sweep_w))*(1/2+2*(h-h_0))*CL_alpha_wing(M=0)
+    l_T = x_ac_h - x_cg
     V_t_bar = (l_T*S_h)/(S_w_total*c_mac_w)
 
     CL_qH=2*CL_alpha_tail_horizontal(M)*eta_h*V_t_bar
     CL_q=CL_qW+CL_qH
     
-    #CM derivative
+    #---- CM derivative ----
     num = (AR_w**3*(np.tan(sweep_w))**2)/(AR_w*B+6*np.cos(sweep_w)) + 3/B   # B est une correction de compressibilité => B ~ 1
     den = (AR_w**3*(np.tan(sweep_w))**2)/(AR_w+6*np.cos(sweep_w)) + 3
     num1 = AR_w*(2*((h-h_0)**2)+0.5*(h-h_0))/(AR_w+2*np.cos(sweep_w))
@@ -254,23 +251,22 @@ def alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     a=np.sqrt(R*gamma*T)
     M=V0/a #mach number
 
-    # CD derivative
+    #---- CD derivative ----
     CD_alpha_dot = 0 # slide 43 DATCOM : negligible
     beta = np.sqrt(1-M**2)
     f_BA = 0.14/4 * beta*AR_w
     CL_g = f_BA*(np.pi/2*AR_w)/(-beta**2)
 
-    # CL derivative
-    CL_alpha_dot_w = 1.5*x_w/c_w_root*CL_alpha_wing(M) + 3*CL_g
+    #---- CL derivative ----
+    CL_alpha_dot_w = 1.5*x_w/c_w_root*CL_alpha_wing(M) + 3*CL_g     # ici on peut négliger CL_alpha_dot_w : CL_alpha_dot = CL_alpha_dot_h
     x_cg = compute_x_cg(W_b,x_b,W_crew1,W_crew2)
-    l_T = x_ac_t_h - x_cg
+    l_T = x_ac_h - x_cg
     V_t_bar = (l_T*S_h)/(S_w_total*c_mac_w)
-    m = 2*(z_tail-z_wing)/b_w
-    grad_downwash = 1.75*a_w/(np.pi * AR_w * ((2*lambda_w*l_T)/b_w)**0.25*(1+abs(m)))
+    grad_downwash = downwash()
     CL_alpha_dot_h = 2*CL_alpha_tail_horizontal(M)*eta_h*V_t_bar*grad_downwash
     CL_alpha_dot = CL_alpha_dot_w + CL_alpha_dot_h
 
-    # CM derivative
+    #---- CM derivative ----
     CM_alpha_dot_w = 0
     CM_alpha_dot_h = -2*CL_alpha_tail_horizontal(M)*eta_h*V_t_bar*grad_downwash*l_T/c_mac_h # slide 47 DATCOM don't know if c_mac is c_mac_w or c_mac_h
     CM_alpha_dot = CM_alpha_dot_w + CM_alpha_dot_h
@@ -285,13 +281,7 @@ def downwash():
     grad_down = grad_down_M0*1      # approx that CL_alpha,wM/CL_alpha,wM=0 ~ 1
     return grad_down 
 
-# We start to evaluate lateral derivatives here ! 
-def sidewash_derivative():
-    Z_w = 0.5 # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER !!!
-    d = np.sqrt(0.595/0.7854)     # A MODIFER, valeur maximale non moyenne !!! 
-    sigma_beta = -0.276 + 3.06*S_fin/S_w_total*1/(1+np.cos(sweep_w)) + 0.4*Z_w/d + 0.009*AR_w # slide 13 L13
-
-def body_sum(M, x_cg):
+def body_sum(M, x_cg):  # computation of the data required to compute the body effect on downwash for CM_alpha
     dXi = 0.1
     frames = np.arange(pe.pos[0]/1000, pe.pos[-1]/1000, dXi)
 
@@ -303,7 +293,6 @@ def body_sum(M, x_cg):
     figure12 = np.genfromtxt('LongData/Figure1_2.csv', delimiter=',')
     Rfigure12 = curve_fit(hyperbole, figure12[:,0], figure12[:,1])[0]
     
-    x_wing_ac = x_debut_wing + c_mac_w/4
     global_dwash = downwash()
 
     ret = 0.0
@@ -323,3 +312,144 @@ def body_sum(M, x_cg):
     return ret
 
 long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e)
+
+"----------------------------------------------DATCOM lateral derivatives--------------------------------"
+def sidewash_beta():    # sidewadh derivative wrt beta
+    sigma_beta = -0.276 + 3.06*S_fin/S_w_total*1/(1+np.cos(sweep_v)) + 0.4*Z_w/d + 0.009*AR_v # slide 13 L13
+    return sigma_beta
+
+def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
+    a = np.sqrt(R*gamma*T)
+    M = V0/a
+    a_v = CL_beta_tail_vertical(M)
+    a_r = CL_beta_rudder(M)
+
+    # Y_v
+    grad_sidewash = sidewash_beta()
+    x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
+    l_F = x_ac_v - x_cg     
+    Y_v_fin = -S_fin/S_w*a_v*(1-grad_sidewash)        # S = surface totale ou surface d'une demi aile ?!!! 
+    Y_v_wing = -0.0001*np.abs(dihedral_w)
+    #Y_v_body = -2*Ki*                                # à faire !!!
+
+    # Y_p            
+    Y_p_fin = -2*S_fin/S_w*a_v*(1-grad_sidewash)*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e))/b_v
+    Y_p_wing = 0 # assumed negligible
+    Y_p_body = 0
+    Y_p = Y_p_fin + Y_p_wing + Y_p_body
+
+    # Y_r
+    Y_r_fin = 2*S_fin/S_w*a_v*(1-grad_sidewash)*(z_F*np.sin(alpha_e)+l_F*np.cos(alpha_e))/b_v
+    Y_r_body = 0    # DATCOM assumption
+    Y_r_wing = 0
+
+    # Y_zeta
+    Y_zeta_fin = S_fin/S_w*a_r
+    return Y_v_fin, Y_p, Y_r_fin, Y_zeta_fin
+
+def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
+    a = np.sqrt(R*gamma*T)
+    M = V0/a
+    a_w = CL_alpha_wing(M)
+    a_v = CL_beta_tail_vertical(M)
+    a_r = CL_beta_rudder(M)
+
+    # L_v
+    grad_sidewash = sidewash_beta()
+    x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
+    l_F = x_ac_v - x_cg
+    V_F = (S_fin*l_F)/(S_w_total*b_w)
+    beta = np.sqrt(1-M**2)
+    # valeurs ci-dessous calculées via les graphes, approximatif !!!
+    Clbeta_CL_half_sweep = 0.0002
+    KM_sweep = 1
+    Clbeta_CL_A = 0
+    Clbeta_dihedral = -0.00035
+    KM_dihedral = 1.005
+    L_v_fin = -V_F*z_F/l_F*a_v*(1-grad_sidewash)
+    L_v_wing = 180/np.pi*( a_w*(Clbeta_CL_half_sweep*KM_sweep + Clbeta_CL_A) + dihedral_w*Clbeta_dihedral)
+    L_v_body = (180*np.sqrt(AR_w)*d)/(np.pi*b_w)*(-0.0005*d/b_w-2.4*np.pi*Z_w/(180*b_w))
+    L_v = L_v_fin + L_v_wing + L_v_body
+
+    # L_p
+    beta_Clp_k = -1.1       # très approximatif !!!
+    k = a0_w/(2*np.pi)
+    Clp_dihedral = 1 - 2*Z_w/(b_w/2)*np.sin(dihedral_w)+3*(Z_w/(b_w/2))**2*(np.sin(dihedral_w))**2  # C_lp_Gamma/C_lp_Gamma=0
+    L_p_fin = -2*S_fin/S_w*a_v*(1-grad_sidewash)*z_F**2/b_v
+    L_p_wb = beta_Clp_k*k/beta*Clp_dihedral 
+    L_p = L_p_fin + L_p_wb
+
+    # L_r
+    alpha = alpha_e
+    B = np.sqrt(1-(M*np.cos(sweep_w))**2)
+    L_r_fin = 2*S_fin/S_w*a_v*(1-grad_sidewash)*((z_F*np.sin(alpha)+l_F*np.cos(alpha))*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e)))/b_v**2    # assumption of alpha=alpha_e !!!
+    L_r_body = 0    # DATCOM assumption
+    clr_CL_num = 1+(AR_w*(1-B**2))/(2*B*(AR_w*B+2*np.cos(sweep_w))) + (AR_w*B+2*np.cos(sweep_w))/(AR_w*B+4*np.cos(sweep_w))*(np.tan(sweep_w)**2)/8
+    clr_CL_den = 1+(AR_w+2*np.cos(sweep_w))/(AR_w+4*np.cos(sweep_w))*(np.tan(sweep_w)**2)/8
+    clr_CL_M0 = 0.24
+    clr_CL = (clr_CL_num/clr_CL_den)*clr_CL_M0
+    dclr_dihedral = 1/12*(np.pi*AR_w*np.sin(sweep_w))/(AR_w+4*np.cos(sweep_w))
+    L_r_wing = a_w*clr_CL + dclr_dihedral*dihedral_w
+    L_r = L_r_fin + L_r_body + L_r_wing
+
+    # L_zeta
+    L_zeta_fin = V_F*z_F/l_F*a_r
+
+    return L_v, L_p, L_r, L_zeta_fin
+
+def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
+    a = np.sqrt(R*gamma*T)
+    M = V0/a
+    beta = np.sqrt(1-M**2)
+    a_w = CL_alpha_wing(M)
+    a_v = CL_beta_tail_vertical(M)
+    a_r = CL_beta_rudder(M)
+    grad_sidewash = sidewash_beta()
+
+    # N_v
+    x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
+    l_F = x_ac_v - x_cg
+    V_F = (S_fin*l_F)/(S_w_total*b_w)
+    N_v_fin = V_F*a_v*(1-grad_sidewash)
+    N_v_wing = 0 # neglected by DATCOM
+    S_Bs = 0.51682
+    K_N = 0.0042
+    Re_lfus = V0*l_fus*rho/nu
+    K_Rl = 1.52
+    N_v_body = -180/np.pi*(K_N*K_Rl*S_Bs*l_fus)/(S_w_total*b_w)
+    N_v = N_v_fin + N_v_wing + N_v_body
+
+    # N_p
+    alpha = alpha_e
+    beta_Clp_k = -1.1       # très approximatif !!!
+    k = a0_w/(2*np.pi)
+    Clp_dihedral = 1 - 2*Z_w/(b_w/2)*np.sin(dihedral_w)+3*(Z_w/(b_w/2))**2*(np.sin(dihedral_w))**2  # C_lp_Gamma/C_lp_Gamma=0
+    L_p_fin = -2*S_fin/S_w*a_v*(1-grad_sidewash)*z_F**2/b_v
+    L_p_wb = beta_Clp_k*k/beta*Clp_dihedral 
+    L_p = L_p_fin + L_p_wb
+    B = np.sqrt(1-M**2*(np.cos(sweep_w))**2)
+
+    h0 = np.abs(x_ac_w-x_debut_wing)/c_mac_w
+    h = np.abs(x_cg-x_debut_wing)/c_mac_w
+    cnp_CL_M0 = -1/6*(AR_w+6*(AR_w+np.cos(sweep_w)))/(AR_w+4*np.cos(sweep_w))*((h0-h)*np.tan(sweep_w)/AR_w+((np.tan(sweep_w))**2)/12)
+    cnp_CL = (AR_w+4*np.cos(sweep_w))/(AR_w*B+4*np.cos(sweep_w))*(AR_w*B+0.5*(AR_w*B+np.cos(sweep_w))*(np.tan(sweep_w))**2)/(AR_w+0.5*(AR_w+np.cos(sweep_w))*(np.tan(sweep_w))**2)*cnp_CL_M0
+    N_p_fin = 2*S_fin/S_w*a_v*(1-grad_sidewash)*((z_F*np.sin(alpha)+l_F*np.cos(alpha))*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e)))/b_v**2    # assumption of alpha=alpha_e !!!
+    N_p_body = 0 # assumption of DATCOM
+    N_p_wing = -L_p_wb*np.tan(alpha)+L_p*np.tan(alpha)+cnp_CL*a_w
+    N_p = N_p_fin + N_p_body + N_p_wing
+
+    # N_r
+    N_r_fin = -2*S_fin/S_w*a_v*(1-grad_sidewash)*(z_F*np.sin(alpha)+l_F*np.cos(alpha))**2/b_v**2
+    N_r_body = 0
+    cnr_CL2 = -0.03
+    cnr_CD0 = -0.3
+    N_r_wing = cnr_CL2*a_w**2 + cnr_CD0*CD0
+    N_r = N_r_fin + N_r_body + N_r_wing
+
+    # N_zeta
+    #N_zeta_fin = -V_F*a_r*zeta ?
+
+    return N_v, N_p, N_r
+
+
+N_derivatives(W_b,x_b,W_crew1,W_crew2,V0)

@@ -25,12 +25,12 @@ plt.rcParams.update({
 #**********************************************************************************************
 
 #******* Weights [kilograms * g] **********
-W_b_w = 60*g     # ballasts at wing
-W_b_t = 0*g     # ballasts at tail
+W_b_w = 0*g     # ballasts at wing
+W_b_t = 15*g     # ballasts at tail
 W_b = W_b_w + W_b_t  # ballasts total weight
 
-W_crew1 = 40*g   # 1 st crew
-W_crew2 = 0*g   # 2 nd crew
+W_crew1 = 80*g   # 1 st crew
+W_crew2 = 80*g   # 2 nd crew
 
 #******* CG of the ballasts **********
 x_b = 0

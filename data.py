@@ -41,7 +41,8 @@ c_w_tip = 0.51429   # Chord of the wing at the tip
 c_mac_w = 2/3 * c_w_root * (1 + lambda_w + lambda_w**2)/(1 + lambda_w)  # mean aerodynamic chord of the wing
 sweep_w = -1.105*np.pi/80       # Sweep angle of the wing (quarter chord)
 sweep_w_half = -2.2089*np.pi/180 # Sweep angle of the wing (half chord)
-sweep_w_le = 0  # sweep angle of the wing at the le 
+sweep_w_le = 0  # sweep angle of the wing at the le
+dihedral_w = 1*np.pi/180 
 
 a0_w = 6.31206     # dcl_w/dalpha 
 a_w = 5.62704      # dCL_w/dalpha 
@@ -65,6 +66,7 @@ b_v = 1.5          # span of the fin
 S_fin = (c_v_root+c_v_tip)*b_v/2   # surface of the fin (vertical tail)
 lambda_v = c_v_tip/c_v_root         # taper ratio of the fin
 c_mac_v = 2/3 * c_v_root * (1 + lambda_v + lambda_v**2)/(1 + lambda_v)  # mean aerodynamic chord of the fin
+y_mac_v = 0.698    # à vérifier !!!
 AR_v = b_v**2/S_fin   # AR of the horizontal empennage
 sweep_v = np.arctan((0.75*c_v_root + np.tan(8*np.pi/180)*b_v - 0.75*c_v_tip)/b_v)  # Sweep angle of the fin (LE sweep angle)
 sweep_v_half = np.arctan((0.5*c_v_root + np.tan(8*np.pi/180)*b_v - 0.5*c_v_tip)/b_v) # Sweep angle of the fin at the half chord
@@ -72,6 +74,14 @@ sweep_v_le = 22.16*np.pi/180
 
 dclF_dbeta = 6.36    # slope of the CL curve for the fin in yaw motion (2D) = a0_v
 dCLF_dbeta = compute_lift_curve_slope(AR_v*2, dclF_dbeta, sweep_v_half, beta=1)  # slope of the CL curve for the fin in yaw motion (3D) = a_v
+
+#**** Rudder (fin control surface) ****
+b_r = 1.5
+c_r_root = 0.33
+c_r_tip = 0.21
+S_r = (c_r_root+c_r_tip)*b_r/2
+AR_r = b_r**2/S_r
+sweep_r_half = np.arctan((c_r_root/2+c_r_tip/2)/b_r)
 
 #*********** Tail (=empennage horizontal) **************************
 c_h_root = 0.55   # chord at the root of the horizontal empennage
@@ -90,7 +100,7 @@ sweep_h_le = 5.71*np.pi/180
 CD_0_h = 0.014          # same as the wing, from conceptual design, sld 61
 dclh_alpha_h = 6.36     # slope of the CL curve for the tail (2D) for now, same as the fin !!!Re
 dCLh_alpha_h = compute_lift_curve_slope(AR_h, dclh_alpha_h, sweep_h_half, beta=1)  # slope of the C_L of the tail with alpha of the tail   
-print(dCLh_alpha_h)
+
 i_h = -2*np.pi/180      # horizontal stabilizer incidence
 z_tail = 1.0216 + b_v   # Height of the tail
 
@@ -99,7 +109,7 @@ z_tail = 1.0216 + b_v   # Height of the tail
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 3.
+x_debut_wing = 3.15
 x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w_le, c_mac_w)
 x_w = x_debut_wing + 0.428
 
@@ -137,7 +147,10 @@ bf1 = 0.3346+0.342
 bf2 = 0.2
 h_f_max = 0.974
 
-# Dynamic stability 
+# ---------- Dynamic stability ------------
 alpha_e = 0 
 h_H = 1.646     # vertical distance between x_ac of tail and wing
 l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
+z_F = 0.5       # A MODIFIER !!!!!!
+Z_w = 0.5 # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER !!!
+d = 0.4956851278    # value that could to change !!!

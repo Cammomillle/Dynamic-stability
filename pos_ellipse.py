@@ -87,3 +87,17 @@ OFFSET
         text += '\n'
 
     return text
+
+def side_area():
+    A = 0
+    for i in range(len(new_y_top)):
+        A += (new_y_top[i]-new_y_low[i])
+    return A
+
+def max_height_width_ratio():
+    max_height = np.max(new_y_top-new_y_low)
+    max_width = np.max(new_b_low-new_b_top)
+    return max_height/max_width
+
+print("Side area: ", side_area()/10**6, "m^2")
+print("h/w: ", max_height_width_ratio())
