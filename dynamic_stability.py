@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import control as ct 
 import pos_ellipse as pe
 from scipy.interpolate import interp1d
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, fmin
 from data import *
 from functions import *
 
@@ -318,6 +318,55 @@ def sidewash_beta():    # sidewash derivative wrt beta
     sigma_beta = -0.276 + 3.06*S_fin/S_w_total*1/(1+np.cos(sweep_v)) + 0.4*Z_w/d + 0.009*AR_v # slide 13 L13
     return sigma_beta
 
+def derivative(func):
+    """Make a derivative function of a function passed as argument"""
+
+    eps = 0.000001
+    return lambda x: (func(x+eps) - func(x-eps))/(2*eps)
+
+def compute_S0():
+    # Assumption: the body is assumed to be a circular revolution of radius
+    # defined by its lower line (pe.ll_i)
+
+    # Find x1 (maximum of derivative of body shape; here the lower body line is used)
+    dsdx = lambda x: -derivative(pe.ll_i)(x)
+    x1 = fmin(dsdx, 3000)[0]/1000
+
+    # Get x0 (Corr. slide 49)
+    x0 = l_fus*(0.378 + 0.527*(x1/l_fus))
+
+    # Get a and b from body shape at x0
+    a = pe.a_i(x0*1000)/1000
+    b = pe.b_i(x0*1000)/1000
+
+    # Return ellipse area
+    return np.pi * a * b
+
+def compute_Ki():
+    # Find z_w (vertical distance between body centerline and wing quarter chord)
+    z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w
+
+    # Find d (maximum body height at wing-body intersection)
+    def bh_at_wing_intersection(x):
+        if x < x_debut_wing:
+            return x_debut_wing - x
+        elif x > x_debut_wing + c_w_root:
+            return x - (x_debut_wing + c_w_root)
+        else:
+            return -pe.bh_i(x*1000)/1000
+    xd = fmin(bh_at_wing_intersection, 3.3)[0]
+    d = pe.bh_i(xd*1000)/1000
+
+    r = z_w/(d/2)
+
+    # Return K_i (Corr. extracted from slide 49)
+    if r >= 0:
+        # Low wing case
+        return 1.4915*r
+    else:
+        # High wing case
+        return -1.844*r
+
 def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     a = np.sqrt(R*gamma*T)
     M = V0/a
@@ -328,10 +377,12 @@ def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     grad_sidewash = sidewash_beta()
     x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
     l_F = x_ac_v - x_cg     
-    Y_v_fin = -S_fin/S_w*a_v*(1-grad_sidewash)        # S = surface totale ou surface d'une demi aile ??!! 
+    Y_v_fin = -S_fin/S_w*a_v*(1-grad_sidewash)        # S = surface totale ou surface d'une demi aile ??!!
     Y_v_wing = -0.0001*np.abs(dihedral_w)
-    #Y_v_body = -2*Ki*                                # à faire !!!
-    Y_v = Y_v_fin + Y_v_wing
+    S0 = compute_S0()
+    Ki = compute_Ki()
+    Y_v_body = -2*Ki*S0/S_w
+    Y_v = Y_v_fin + Y_v_body + Y_v_wing
 
     # Y_p            
     Y_p_fin = -2*S_fin/S_w*a_v*(1-grad_sidewash)*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e))/b_v
@@ -452,5 +503,4 @@ def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
 
     return N_v, N_p, N_r
 
-
-N_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+# N_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
