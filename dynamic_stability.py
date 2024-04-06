@@ -343,9 +343,6 @@ def compute_S0():
     return np.pi * a * b
 
 def compute_Ki():
-    # Find z_w (vertical distance between body centerline and wing quarter chord)
-    z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w
-
     # Find d (maximum body height at wing-body intersection)
     def bh_at_wing_intersection(x):
         if x < x_debut_wing:
@@ -357,7 +354,7 @@ def compute_Ki():
     xd = fmin(bh_at_wing_intersection, 3.3)[0]
     d = pe.bh_i(xd*1000)/1000
 
-    r = z_w/(d/2)
+    r = Z_w/(d/2)
 
     # Return K_i (Corr. extracted from slide 49)
     if r >= 0:
@@ -366,6 +363,18 @@ def compute_Ki():
     else:
         # High wing case
         return -1.844*r
+
+def compute_Kb(eta):
+    # Get Kb (extracted from slide 65; for lambda = 0.5)
+    Kb_lambda_5 = np.genfromtxt('LatData/Kb_lambda_5.csv', delimiter=',')
+    Kb_lambda_5 = interp1d(Kb_lambda_5[:,0], Kb_lambda_5[:,1])
+    return Kb_lambda_5(eta)
+
+def compute_Kprime(df):
+    # Get Kprime (extracted from slide 65; for cf/c = 0.28)
+    Kprime_c_ratio_28 = np.genfromtxt('LatData/Kprime_c_ratio_28.csv', delimiter=',')
+    Kprime_c_ratio_28 = interp1d(Kprime_c_ratio_28[:,0], Kprime_c_ratio_28[:,1])
+    return Kprime_c_ratio_28(df)
 
 def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     a = np.sqrt(R*gamma*T)
@@ -397,6 +406,8 @@ def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     Y_r = Y_r_fin + Y_r_body + Y_r_wing
 
     # Y_zeta
+    # Kb = compute_Kb(...)
+    # Kprime = compute_Kprime(...)
     Y_zeta_fin = S_fin/S_w*a_r
     Y_zeta_rudder = a_v*ratio_alpha_dcl*alpha_dcl*K_*K_b*S_fin/S_w_total                   # demander pour formule !!
     return Y_v, Y_p, Y_r, Y_zeta_fin
@@ -446,6 +457,8 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     L_r = L_r_fin + L_r_body + L_r_wing
 
     # L_zeta
+    # Kb = compute_Kb(...)
+    # Kprime = compute_Kprime(...)
     L_zeta_fin = V_F*z_F/l_F*a_r
 
     return L_v, L_p, L_r, L_zeta_fin
@@ -499,6 +512,8 @@ def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     N_r = N_r_fin + N_r_body + N_r_wing
 
     # N_zeta
+    # Kb = compute_Kb(...)
+    # Kprime = compute_Kprime(...)
     #N_zeta_fin = -V_F*a_r*zeta ?
 
     return N_v, N_p, N_r

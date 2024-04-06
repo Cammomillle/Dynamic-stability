@@ -2,6 +2,7 @@ import sympy as sym
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import pos_ellipse as pe
 import matplotlib.patches as mpatches
 
 #************
@@ -79,6 +80,9 @@ dCLF_dbeta = compute_lift_curve_slope(AR_v*2, dclF_dbeta, sweep_v_half, beta=1) 
 b_r = 1.5
 c_r_root = 0.33
 c_r_tip = 0.21
+c_ratio_root = c_r_root/c_v_root
+c_ratio_tip = c_r_tip/c_v_tip
+c_ratio = (c_ratio_root + c_ratio_tip)/2 # assumption: mean taken from graph
 S_r = (c_r_root+c_r_tip)*b_r/2
 AR_r = b_r**2/S_r
 sweep_r_half = np.arctan((c_r_root/2+c_r_tip/2)/b_r)
@@ -154,5 +158,7 @@ alpha_e = 0
 h_H = 1.646     # vertical distance between x_ac of tail and wing
 l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
 z_F = 0.5       # A MODIFIER !!!!!!
-Z_w = 0.5 # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER !!!
-d = 0.4956851278    # value that could to change !!!
+Z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
+d = 0.4956851278    # value that could to change !!! is this d from slide 49? (if yes, then it can be calculated like in compute_Ki())
+alpha_dcl = -0.63 # fin flap value (extracted from slide 65)
+alpha_dcl_ratio = 1.05 # fin flap value ratio (extracted from slide 65; conservative value)
