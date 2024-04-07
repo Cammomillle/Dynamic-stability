@@ -52,13 +52,13 @@ def CL_alpha_tail_horizontal(M):
 def CL_beta_tail_vertical(M):
     beta=np.sqrt(1-M**2)
     k=dclF_dbeta/(2*np.pi)
-    CL_alphaV=(2*np.pi*AR_v*2)/(2+np.sqrt((AR_v*2*beta/k)**2*(1+np.tan(sweep_v_half)**2/beta**2)+4))    # we multiply the AR_v by two because the formula is valide for a full wing
+    CL_alphaV=(2*np.pi*AR_v*2)/(2+np.sqrt((AR_v*2*beta/k)**2*(1+np.tan(sweep_v_half)**2/beta**2)+4))    # we multiply the AR_v by two because the formula is ok for a full wing
     return CL_alphaV/2
 
 def CL_beta_rudder(M):
     beta=np.sqrt(1-M**2)
     k=dclF_dbeta/(2*np.pi)
-    CL_alphaR=(2*np.pi*AR_r*2)/(2+np.sqrt((AR_r*2*beta/k)**2*(1+np.tan(sweep_r_half)**2/beta**2)+4))    # we multiply the AR_v by two because the formula is valide for a full wing
+    CL_alphaR=(2*np.pi*AR_r*2)/(2+np.sqrt((AR_r*2*beta/k)**2*(1+np.tan(sweep_r_half)**2/beta**2)+4))    # we multiply the AR_v by two because the formula is ok for a full wing
     return CL_alphaR/2
 
 def compute_CL(V_0):
@@ -113,11 +113,12 @@ def compute_long_matrices(m,theta_e,Iy,X_w_dot,Z_w_dot,M_w_dot,X_u,X_w,X_q,Z_u,Z
 
     return A_2, B_2
 
-def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e):
+def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     CD_u, CL_u, CM_u = u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e,alpha_0)
     CD_alpha, CL_alpha, CM_alpha = alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
     CD_q, CL_q, CM_q = q_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
     CD_alpha_dot, CL_alpha_dot, CM_alpha_dot = alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+    CD_eta, CL_eta, CM_eta = eta_derivatives(V0)
 
     L_e = compute_total_mass(W_b, W_crew1, W_crew2)
     D_e = 170.378 #N
@@ -132,14 +133,18 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e):
     Z_u = -(CL_u*np.cos(alpha_e) + CD_u*np.sin(alpha_e))
     Z_w = 1/np.cos(alpha_e)*(C_xe - CL_alpha*np.cos(alpha_e) - CD_alpha*np.sin(alpha_e))
     Z_q = -(CL_q*np.cos(alpha_e) + CD_q*np.sin(alpha_e))
-    Z_w_alpha_dot = -1/np.cos(alpha_e)*(CL_alpha_dot*np.cos(alpha_e) + CD_alpha_dot*np.sin(alpha_e))
+    Z_w_dot = -1/np.cos(alpha_e)*(CL_alpha_dot*np.cos(alpha_e) + CD_alpha_dot*np.sin(alpha_e))
 
     M_u = CM_u
     M_q = CM_q
     M_w = 1/np.cos(alpha_e)*CM_alpha
     M_w_dot = 1/np.cos(alpha_e)*CM_alpha_dot
 
-    return X_u, X_w, X_q, X_w_dot, Z_u, Z_w, Z_q, Z_w_alpha_dot, M_u, M_q, M_w, M_w_dot
+    Z_eta = -CL_eta*np.cos(alpha_e) - CD_eta*np.sin(alpha_e)
+    X_eta = CL_eta*np.sin(alpha_e) - CD_eta*np.cos(alpha_e)
+    M_eta = CM_eta
+
+    return X_u, X_w, X_q, X_w_dot, Z_u, Z_w, Z_q, Z_w_dot, M_u, M_q, M_w, M_w_dot, Z_eta, X_eta, M_eta
 
 def lat_derivatives():
     return
@@ -213,10 +218,10 @@ def u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha,alpha_0):
 
 def q_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     a=np.sqrt(R*gamma*T)
-    M=V0/a #mach number
+    M=V0/a 
     
     #---- CD derivative ----
-    CD_q=0 #DATCOM recommends to neglect it
+    CD_q=0 # DATCOM recommends to neglect it
     
     #---- CL derivative ----
     x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) # x-location of the LE of the projected c_mac of the wing
@@ -249,7 +254,7 @@ def q_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
 
 def alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     a=np.sqrt(R*gamma*T)
-    M=V0/a #mach number
+    M=V0/a 
 
     #---- CD derivative ----
     CD_alpha_dot = 0 # slide 43 DATCOM : negligible
@@ -258,7 +263,7 @@ def alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     CL_g = f_BA*(np.pi/2*AR_w)/(-beta**2)
 
     #---- CL derivative ----
-    CL_alpha_dot_w = 1.5*x_w/c_w_root*CL_alpha_wing(M) + 3*CL_g     # ici on peut négliger CL_alpha_dot_w : CL_alpha_dot = CL_alpha_dot_h
+    CL_alpha_dot_w = 1.5*x_w/c_w_root*CL_alpha_wing(M) + 3*CL_g  # ici on peut négliger CL_alpha_dot_w : CL_alpha_dot = CL_alpha_dot_h
     x_cg = compute_x_cg(W_b,x_b,W_crew1,W_crew2)
     l_T = x_ac_h - x_cg
     V_t_bar = (l_T*S_h)/(S_w_total*c_mac_w)
@@ -272,6 +277,22 @@ def alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     CM_alpha_dot = CM_alpha_dot_w + CM_alpha_dot_h
 
     return CD_alpha_dot, CL_alpha_dot, CM_alpha_dot
+
+def eta_derivatives(V0):
+    a=np.sqrt(R*gamma*T)
+    M=V0/a 
+    CL_alpha = CL_alpha_tail_horizontal(M)
+
+    #---- CD derivative ----
+    CD_eta = 0
+
+    #---- CL derivative ----
+    CL_eta = 0                      # flaps dans la formule or pas de flaps, ok ? 
+
+    #---- CM derivative ----
+    CM_eta = 0                      # flaps dans la formule or pas de flaps, ok ?
+
+    return CD_eta, CL_eta, CM_eta
 
 def downwash():
     K_A = 1/AR_w - 1/(1+AR_w**1.7)
@@ -320,7 +341,6 @@ def sidewash_beta():    # sidewash derivative wrt beta
 
 def derivative(func):
     """Make a derivative function of a function passed as argument"""
-
     eps = 0.000001
     return lambda x: (func(x+eps) - func(x-eps))/(2*eps)
 
@@ -393,24 +413,29 @@ def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     Y_v_body = -2*Ki*S0/S_w
     Y_v = Y_v_fin + Y_v_body + Y_v_wing
 
-    # Y_p            
+    # Y_p (roll rate)           
     Y_p_fin = -2*S_fin/S_w*a_v*(1-grad_sidewash)*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e))/b_v
     Y_p_wing = 0 # assumed negligible
     Y_p_body = 0
     Y_p = Y_p_fin + Y_p_wing + Y_p_body
 
-    # Y_r
+    # Y_r (yaw rate)
     Y_r_fin = 2*S_fin/S_w*a_v*(1-grad_sidewash)*(z_F*np.sin(alpha_e)+l_F*np.cos(alpha_e))/b_v
     Y_r_body = 0    # DATCOM assumption
     Y_r_wing = 0
     Y_r = Y_r_fin + Y_r_body + Y_r_wing
 
-    # Y_zeta
-    # Kb = compute_Kb(...)
-    # Kprime = compute_Kprime(...)
-    Y_zeta_fin = S_fin/S_w*a_r
-    Y_zeta_rudder = a_v*ratio_alpha_dcl*alpha_dcl*K_*K_b*S_fin/S_w_total                   # demander pour formule !!
-    return Y_v, Y_p, Y_r, Y_zeta_fin
+    # Y_zeta (rudder deflection)
+    eta = 20*np.pi/180                                      # eta = max elevator deflection ?
+    df = 30*np.pi/180                                       # df = max rudder deflection ? pq flaps deflection dans la formule ?
+    Kb = compute_Kb(eta)
+    Kprime = compute_Kprime(df)
+    Y_zeta = a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total            
+
+    # Y_ksi (aileron deflection)
+    Y_ksi = 0   # negligible according to DATCOM
+
+    return Y_v, Y_p, Y_r, Y_zeta, Y_ksi
 
 def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     a = np.sqrt(R*gamma*T)
@@ -457,11 +482,13 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     L_r = L_r_fin + L_r_body + L_r_wing
 
     # L_zeta
-    # Kb = compute_Kb(...)
-    # Kprime = compute_Kprime(...)
-    L_zeta_fin = V_F*z_F/l_F*a_r
+    Kb = compute_Kb(eta)
+    Kprime = compute_Kprime(df)
+    L_zeta = a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e))/b_v     # b = b_v or b_wing or b_rudder ???
+    
+    # L_ksi 
 
-    return L_v, L_p, L_r, L_zeta_fin
+    return L_v, L_p, L_r, L_zeta
 
 def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     a = np.sqrt(R*gamma*T)
@@ -512,10 +539,11 @@ def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     N_r = N_r_fin + N_r_body + N_r_wing
 
     # N_zeta
-    # Kb = compute_Kb(...)
-    # Kprime = compute_Kprime(...)
-    #N_zeta_fin = -V_F*a_r*zeta ?
+    Kb = compute_Kb(eta)
+    Kprime = compute_Kprime(df)
+    N_zeta = -a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total*(z_F*np.sin(alpha_e)+l_F*np.cos(alpha_e))/b_v      # b = b_v or b_wing or b_rudder ???
 
-    return N_v, N_p, N_r
+    # N_ksi
+    return N_v, N_p, N_r, N_zeta
 
 # N_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
