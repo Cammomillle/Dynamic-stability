@@ -165,7 +165,6 @@ alpha_dcl_ratio = 1.05 # fin flap value ratio (extracted from slide 65; conserva
 eta = 20*np.pi/180                                      # eta = max elevator deflection ?
 df = 30*np.pi/180                                       # df = max rudder deflection ? pq flaps deflection dans la formule ?
 
-
 Ix = 3384.336
 Iy = 1513.858
 Iz = 4828.946

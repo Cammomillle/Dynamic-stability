@@ -434,16 +434,16 @@ def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     Y_r = Y_r_fin + Y_r_body + Y_r_wing
 
     # Y_zeta (rudder deflection)
-    eta = 20*np.pi/180                                      # eta = max elevator deflection ?
+    """eta = 20*np.pi/180                                      # eta = max elevator deflection ?
     df = 30*np.pi/180                                       # df = max rudder deflection ? pq flaps deflection dans la formule ?
     Kb = compute_Kb(eta)
     Kprime = compute_Kprime(df)
-    Y_zeta = a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total            
+    Y_zeta = a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total"""          
 
     # Y_ksi (aileron deflection)
-    Y_ksi = 0   # negligible according to DATCOM
+    """Y_ksi = 0   # negligible according to DATCOM"""
 
-    return Y_v, Y_p, Y_r, Y_zeta, Y_ksi
+    return Y_v, Y_p, Y_r
 
 def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     a = np.sqrt(R*gamma*T)
@@ -490,9 +490,9 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     L_r = L_r_fin + L_r_body + L_r_wing
 
     # L_zeta
-    Kb = compute_Kb(eta)
+    """Kb = compute_Kb(eta)
     Kprime = compute_Kprime(df)
-    L_zeta = a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e))/b_w  
+    L_zeta = a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total*(z_F*np.cos(alpha_e)-l_F*np.sin(alpha_e))/b_w"""
     
     # L_ksi 
     """cld_theory = 3.7
@@ -506,7 +506,7 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     cldR = np.abs(alphadR)*cldprime_R
     cldL = np.abs(alphadL)*cldprime_L
     LdA = cldL+cldR"""
-    return L_v, L_p, L_r, L_zeta
+    return L_v, L_p, L_r
 
 def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     a = np.sqrt(R*gamma*T)
@@ -557,17 +557,17 @@ def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     N_r = N_r_fin + N_r_body + N_r_wing
 
     # N_zeta
-    Kb = compute_Kb(eta)
+    """Kb = compute_Kb(eta)
     Kprime = compute_Kprime(df)
-    N_zeta = -a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total*(z_F*np.sin(alpha_e)+l_F*np.cos(alpha_e))/b_w    
+    N_zeta = -a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total*(z_F*np.sin(alpha_e)+l_F*np.cos(alpha_e))/b_w"""    
 
     # N_ksi
-    return N_v, N_p, N_r, N_zeta
+    return N_v, N_p, N_r
 
 alpha = alpha_e
-Y_v, Y_p, Y_r, Y_zeta, Y_ksi = Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
-L_v, L_p, L_r, L_zeta = L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha)
-N_v, N_p, N_r, N_zeta = N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha)
+Y_v, Y_p, Y_r = Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+L_v, L_p, L_r = L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha)
+N_v, N_p, N_r = N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha)
 A_lat = compute_lat_matrices(m,Y_p,Y_r,Y_v,U_e,W_e,theta_e,L_p,L_r,L_v,N_p,N_r,N_v)
 eigenval_A_lat, eigenvect_A_lat = np.linalg.eig(A_lat)
 print("\n A_lat:", A_lat)
