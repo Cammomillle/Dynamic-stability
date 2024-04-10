@@ -43,14 +43,10 @@ def compute_K_n(h_n, h):
     return K_n, is_kn_ok
 
 def compute_hn(x_cg):  # hn is computed to define pitch stability, see Conceptual design slides 47-49
-    x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w, c_mac_w)
-    x_ac_t_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h, c_mac_h) 
-    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) # x-location of the LE of the projected c_mac of the wing
-    x_le_tail = compute_x_mac(x_debut_tail_h, b_h, lambda_h, sweep_h) # x-location of the LE of the projected c_mac of the tail
-    
+    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le) # x-location of the LE of the projected c_mac of the wing
     h_0 = (x_ac_w-x_le_wing)/c_mac_w
     a1 = dCLh_alpha_h
-    l_T = x_ac_t_h - x_cg
+    l_T = x_ac_h - x_cg
     V_t_bar = (l_T*S_h)/(S_w_total*c_mac_w)
     m = 2*(z_tail-z_wing)/b_w
     grad_downwash = 1.75*a_w/(np.pi * AR_w * ((2*lambda_w*l_T)/b_w)**0.25*(1+abs(m)))
@@ -61,6 +57,6 @@ def compute_hn(x_cg):  # hn is computed to define pitch stability, see Conceptua
     return h_n
 
 def compute_h(x_cg):
-    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) # x-location of the LE of the projected airfoil of the wing
+    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le) # x-location of the LE of the projected airfoil of the wing
     h=(x_cg-x_le_wing)/c_mac_w # by definition !
     return h

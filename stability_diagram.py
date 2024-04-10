@@ -31,9 +31,6 @@ def cg_diag():
     for i in range(len(W_crew1)):
         for j in range(len(W_crew2)):
             W_crew=W_crew1[i]+W_crew2[j]
-            x_crew=0
-            if(W_crew!=0):
-                x_crew=(W_crew1[i]*x_crew1+W_crew2[j]*x_crew2)/W_crew
 
             # On calcule le x_cg sans ballasts et on vérifie la stabilité
             W_b=0

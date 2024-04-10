@@ -88,7 +88,7 @@ def compute_lat_matrices(m,Y_p,Y_r,Y_v,Ue,We,theta_e,L_p,L_r,L_v,N_p,N_r,N_v):
                  [0,0],
                  [0,0]])"""
 
-    A_1=np.linalg.inv(A1) @ B1
+    A_1=-np.linalg.inv(A1) @ B1
     #B_1=np.linalg.inv(A1) @ C1
     return A_1
 
@@ -108,54 +108,10 @@ def compute_long_matrices(m,theta_e,Iy,X_w_dot,Z_w_dot,M_w_dot,X_u,X_w,X_q,Z_u,Z
                   [M_eta, M_tau], 
                   [0, 0]])"""
 
-    A_2=np.linalg.inv(A2) @ B2
+    A_2=-np.linalg.inv(A2) @ B2
     #B_2=np.linalg.inv(A2) @ C2
-
     return A_2
 
-def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
-    CD_u, CL_u, CM_u = u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e,alpha_0)
-    CD_alpha, CL_alpha, CM_alpha = alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
-    CD_q, CL_q, CM_q = q_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
-    CD_alpha_dot, CL_alpha_dot, CM_alpha_dot = alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
-    CD_eta, CL_eta, CM_eta = eta_derivatives(V0)
-
-    L_e = compute_total_mass(W_b, W_crew1, W_crew2)
-    D_e = 170.378 #N
-    C_ze = (-L_e*np.cos(alpha_e) - D_e*np.sin(alpha_e))/(0.5*rho*V0**2*S_w_total)
-    C_xe = (L_e*np.sin(alpha_e) - D_e*np.cos(alpha_e))/(0.5*rho*V0**2*S_w_total)
-    
-    X_u = CL_u*np.sin(alpha_e) - CD_u*np.cos(alpha_e)
-    X_w = 1/(np.cos(alpha_e))*(-C_ze+CL_alpha*np.sin(alpha_e) - CD_alpha*np.cos(alpha_e))
-    X_q = CL_q*np.sin(alpha_e) - CD_q*np.cos(alpha_e)
-    X_w_dot = 1/np.cos(alpha_e)*(CL_alpha_dot*np.sin(alpha_e)-CD_alpha_dot)
-
-    Z_u = -(CL_u*np.cos(alpha_e) + CD_u*np.sin(alpha_e))
-    Z_w = 1/np.cos(alpha_e)*(C_xe - CL_alpha*np.cos(alpha_e) - CD_alpha*np.sin(alpha_e))
-    Z_q = -(CL_q*np.cos(alpha_e) + CD_q*np.sin(alpha_e))
-    Z_w_dot = -1/np.cos(alpha_e)*(CL_alpha_dot*np.cos(alpha_e) + CD_alpha_dot*np.sin(alpha_e))
-
-    M_u = CM_u
-    M_q = CM_q
-    M_w = 1/np.cos(alpha_e)*CM_alpha
-    M_w_dot = 1/np.cos(alpha_e)*CM_alpha_dot
-
-    Z_eta = -CL_eta*np.cos(alpha_e) - CD_eta*np.sin(alpha_e)
-    X_eta = CL_eta*np.sin(alpha_e) - CD_eta*np.cos(alpha_e)
-    M_eta = CM_eta
-
-    return X_u, X_w, X_q, X_w_dot, Z_u, Z_w, Z_q, Z_w_dot, M_u, M_q, M_w, M_w_dot, Z_eta, X_eta, M_eta
-
-X_u, X_w, X_q, X_w_dot, Z_u, Z_w, Z_q, Z_w_dot, M_u, M_q, M_w, M_w_dot, Z_eta, X_eta, M_eta = long_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
-W_tot = compute_total_mass(W_b, W_crew1, W_crew2)
-m = W_tot/g
-theta_e = 0
-U_e = V0
-W_e = 0
-A_long = compute_long_matrices(m,theta_e,Iy,X_w_dot,Z_w_dot,M_w_dot,X_u,X_w,X_q,Z_u,Z_w,Z_q,M_u,M_w,M_q,U_e,W_e)
-
-def lat_derivatives():
-    return
 "----------------------------------------------Inertias------------------------------------------"    
 def compute_inertias():
     return 
@@ -185,6 +141,7 @@ def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     
     #--- CM derivative ----
     K = -(x_cg-x_ac)/c_mac_w
+    #print(x_ac, x_ac_w)
     #print('Stability margin', K)
     CM_alpha=-K*CL_alpha
 
@@ -340,7 +297,50 @@ def body_sum(M, x_cg):  # computation of the data required to compute the body e
     
     return ret
 
-long_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
+    CD_u, CL_u, CM_u = u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha_e,alpha_0)
+    CD_alpha, CL_alpha, CM_alpha = alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+    CD_q, CL_q, CM_q = q_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+    CD_alpha_dot, CL_alpha_dot, CM_alpha_dot = alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+    CD_eta, CL_eta, CM_eta = eta_derivatives(V0)
+
+    L_e = compute_total_mass(W_b, W_crew1, W_crew2)
+    D_e = 170.378 #N
+    C_ze = (-L_e*np.cos(alpha_e) - D_e*np.sin(alpha_e))/(0.5*rho*V0**2*S_w_total)
+    C_xe = (L_e*np.sin(alpha_e) - D_e*np.cos(alpha_e))/(0.5*rho*V0**2*S_w_total)
+    
+    X_u = CL_u*np.sin(alpha_e) - CD_u*np.cos(alpha_e)
+    X_w = 1/(np.cos(alpha_e))*(-C_ze+CL_alpha*np.sin(alpha_e) - CD_alpha*np.cos(alpha_e))
+    X_q = CL_q*np.sin(alpha_e) - CD_q*np.cos(alpha_e)
+    X_w_dot = 1/np.cos(alpha_e)*(CL_alpha_dot*np.sin(alpha_e)-CD_alpha_dot)
+
+    Z_u = -(CL_u*np.cos(alpha_e) + CD_u*np.sin(alpha_e))
+    Z_w = 1/np.cos(alpha_e)*(C_xe - CL_alpha*np.cos(alpha_e) - CD_alpha*np.sin(alpha_e))
+    Z_q = -(CL_q*np.cos(alpha_e) + CD_q*np.sin(alpha_e))
+    Z_w_dot = -1/np.cos(alpha_e)*(CL_alpha_dot*np.cos(alpha_e) + CD_alpha_dot*np.sin(alpha_e))
+
+    M_u = CM_u
+    M_q = CM_q
+    M_w = 1/np.cos(alpha_e)*CM_alpha
+    M_w_dot = 1/np.cos(alpha_e)*CM_alpha_dot
+
+    Z_eta = -CL_eta*np.cos(alpha_e) - CD_eta*np.sin(alpha_e)
+    X_eta = CL_eta*np.sin(alpha_e) - CD_eta*np.cos(alpha_e)
+    M_eta = CM_eta
+
+    return X_u, X_w, X_q, X_w_dot, Z_u, Z_w, Z_q, Z_w_dot, M_u, M_q, M_w, M_w_dot, Z_eta, X_eta, M_eta
+
+X_u, X_w, X_q, X_w_dot, Z_u, Z_w, Z_q, Z_w_dot, M_u, M_q, M_w, M_w_dot, Z_eta, X_eta, M_eta = long_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+W_tot = compute_total_mass(W_b, W_crew1, W_crew2)
+m = W_tot/g
+theta_e = 0
+U_e = V0
+W_e = 0
+A_long = compute_long_matrices(m,theta_e,Iy,X_w_dot,Z_w_dot,M_w_dot,X_u,X_w,X_q,Z_u,Z_w,Z_q,M_u,M_w,M_q,U_e,W_e)
+eigenval_A_long, eigenvect_A_long = np.linalg.eig(A_long)
+print("A_long:", A_long)
+print("eigenVal of A_long: ", eigenval_A_long)
+
 
 "----------------------------------------------DATCOM lateral derivatives--------------------------------"
 def sidewash_beta():    # sidewash derivative wrt beta
@@ -564,4 +564,11 @@ def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     # N_ksi
     return N_v, N_p, N_r, N_zeta
 
-# N_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+alpha = alpha_e
+Y_v, Y_p, Y_r, Y_zeta, Y_ksi = Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
+L_v, L_p, L_r, L_zeta = L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha)
+N_v, N_p, N_r, N_zeta = N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha)
+A_lat = compute_lat_matrices(m,Y_p,Y_r,Y_v,U_e,W_e,theta_e,L_p,L_r,L_v,N_p,N_r,N_v)
+eigenval_A_lat, eigenvect_A_lat = np.linalg.eig(A_lat)
+print("\n A_lat:", A_lat)
+print("eigenVal of A_lat: ", eigenval_A_lat)
