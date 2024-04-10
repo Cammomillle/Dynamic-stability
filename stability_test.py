@@ -179,7 +179,7 @@ print("CG of the  sailplane before ballasts computation: ", x_cg, "m")
 
 # CG of the empty sailplane (i.e., without ballasts and crew)
 x_cg_empty = compute_x_cg_empty()
-#print("CG of the empty sailplane: ", x_cg_empty, "m")
+print("CG of the empty sailplane: ", x_cg_empty, "m")
 
 # Static pitch stability of the sailplane without ballasts
 h=compute_h(x_cg)
