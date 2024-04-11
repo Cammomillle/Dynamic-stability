@@ -157,7 +157,7 @@ alpha_e = 0
 h_H = 1.646     # vertical distance between x_ac of tail and wing
 l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
 z_F = 0.5       # A MODIFIER !!!!!!
-Z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
+z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
 d = 0.4956851278    # value that could change !!! is this d from slide 49? (if yes, then it can be calculated like in compute_Ki())
 alpha_dcl = -0.63   # fin flap value (extracted from slide 65)
 alpha_dcl_ratio = 1.05 # fin flap value ratio (extracted from slide 65; conservative value)
@@ -166,6 +166,6 @@ eta = 20*np.pi/180                                      # eta = max elevator def
 df = 30*np.pi/180                                       # df = max rudder deflection ? pq flaps deflection dans la formule ?
 
 Ix = 3384.336
-Iy = 1513.858
+Iy = 3100
 Iz = 4828.946
 Ixz = 141.718

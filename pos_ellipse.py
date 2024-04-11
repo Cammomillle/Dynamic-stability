@@ -103,5 +103,10 @@ def max_height_width_ratio():
     max_width = np.max(new_b_low-new_b_top)
     return max_height/max_width
 
+#m_lin = W_fus/(2*np.pi*g)   # assumption of a symmetry of revolution for the mass computation
+
+
 #print("Side area: ", side_area()/10**6, "m^2")
 #print("h/w: ", max_height_width_ratio())
+
+
