@@ -113,7 +113,7 @@ z_tail = 1.0216 + b_v   # Height of the tail
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 3.15
+x_debut_wing = 2.9
 x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w_le, c_mac_w)
 x_w = x_debut_wing + 0.428
 theta_w = 1.4/180*np.pi
@@ -126,7 +126,6 @@ x_t_v = x_debut_tail + 0.62
 x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
 x_ac_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h_le, c_mac_h)
 x_t_h = x_debut_tail_h + 0.276
-
 x_crew1 = 1.435       # crew member 1
 x_crew2 = 2.575       # crew member 2
 
@@ -135,10 +134,10 @@ x_b_t = x_t_v       # ballast au CG du fin
 
 #x_fus = 0.45*l_fus         # fuselage 
 x_fus = 3.2           
-x_motor = 4.               # motor                              A MODIFIER !!!!
-x_batteries = 4.5          # batteries                          A MODIFIER !!!!
-x_main_gear = 3.5          # main gear                          A MODIFIER !!!!
-x_gear_2 = l_fus-0.55      # last gear                          A MODIFIER !!!!
+x_motor = 4.               # motor                              
+x_batteries = 4.5          # batteries                          
+x_main_gear = 3.5          # main gear                          
+x_gear_2 = l_fus-0.55      # last gear                          
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
 x_flight_control = x_crew1-0.2 # assumption of 20cm between first pilots and commands
 
@@ -160,12 +159,11 @@ l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
 z_F = 0.5       # A MODIFIER !!!!!!
 Z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
 d = 0.4956851278    # value that could change !!! is this d from slide 49? (if yes, then it can be calculated like in compute_Ki())
-alpha_dcl = -0.63 # fin flap value (extracted from slide 65)
+alpha_dcl = -0.63   # fin flap value (extracted from slide 65)
 alpha_dcl_ratio = 1.05 # fin flap value ratio (extracted from slide 65; conservative value)
 
 eta = 20*np.pi/180                                      # eta = max elevator deflection ?
 df = 30*np.pi/180                                       # df = max rudder deflection ? pq flaps deflection dans la formule ?
-
 
 Ix = 3384.336
 Iy = 1513.858

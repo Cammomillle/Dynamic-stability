@@ -25,9 +25,9 @@ plt.rcParams.update({
 #**********************************************************************************************
 
 #******* Weights [kilograms * g] **********
-W_b_w = 0*g     # ballasts at wing
-W_b_t = 15*g     # ballasts at tail
-W_b = W_b_w + W_b_t  # ballasts total weight
+W_b_crew = 0*g     # ballasts at wing
+W_b_t = 0*g     # ballasts at tail
+W_b = W_b_crew + W_b_t  # ballasts total weight
 
 W_crew1 = 80*g   # 1 st crew
 W_crew2 = 80*g   # 2 nd crew
@@ -35,20 +35,19 @@ W_crew2 = 80*g   # 2 nd crew
 #******* CG of the ballasts **********
 x_b = 0
 if(W_b!=0):
-    x_b = (W_b_w*x_b_w + W_b_t*x_b_t)/W_b
+    x_b = (W_b_crew*x_b_w + W_b_t*x_b_t)/W_b
     
 def round_formatter(value, pos):
     return round(value, 2) 
 
-def plot_results(x_cg_enveloppe,x_cg_empty,x_cg_no_ballasts,x_cg_ballasts, h_n):
-    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)
+def plot_results(x_cg_enveloppe,h_n):
+
+    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le)
     x_n = (h_n*c_mac_w+x_le_wing)
     x_cg_min = compute_x_cg(60*g, x_crew1, 40*g, 0) # CG position for 1 crew of 90lb
     x_cg_max = compute_x_cg(15*g, x_t_v, 122.5*g, 122.5*g) # CG position for 2 crews of 270lb each
+
     plt.scatter([x_cg_enveloppe[0]*3.28084,x_cg_enveloppe[1]*3.28084],[0,0],label="Static margin range",color="darkorange", s=80)
-    #plt.scatter(x_cg_empty*3.28084,0,label="Empty CG",color="purple")
-    #plt.scatter(x_cg_no_ballasts*3.28084,0,label="CG with crew")
-    #plt.scatter(x_cg_ballasts*3.28084,0,label="CG")
     plt.scatter(x_w*3.28084,0,label="AC", s=80, color="yellowgreen")
     plt.scatter(x_n*3.28084,0,label="NP", s=80, color='red')
     plt.scatter([x_cg_min*3.28084, x_cg_max*3.28084], [0,0], label="CG variation", s=80, color="darkcyan")
@@ -68,7 +67,7 @@ def plot_results(x_cg_enveloppe,x_cg_empty,x_cg_no_ballasts,x_cg_ballasts, h_n):
     plt.plot(x_cc+x_debut_wing,y_tab,label="wings")"""
     ax = plt.gca()
     ax.set_ylim(-0.5,0.5)
-    ax.set_xlim((9.75,10.7))
+    ax.set_xlim((10.30,11.15))
     ticks=[x_cg_enveloppe[0],x_cg_enveloppe[1],x_w, x_n, x_cg_min, x_cg_max]
     ticks=np.array(ticks)*3.28084
     ax.set_xticks(ticks)
@@ -86,12 +85,12 @@ def plot_results(x_cg_enveloppe,x_cg_empty,x_cg_no_ballasts,x_cg_ballasts, h_n):
 
 def x_cg_enveloppe(h_n): # computation of the CG enveloppe diagram
     """
-    We want Kn to be such as : Kn>0.1 & Kn<0.2 or Kn=hn-h iif h=hn-K which means that h should be such as h>hn-0.2 and h<hn-0.1
+    We want Kn to be such as : Kn>0.05 & Kn<0.25 or Kn=hn-h iif h=hn-K which means that h should be such as h>hn-0.25 and h<hn-0.05
     On peut prendre une plus grande marge
     """
     h_low = h_n-K_n_high  # h_min to be stable
     h_high = h_n-K_n_low  # h_max to be stable
-    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) # x_loc of the leading edge of the projected c_mac
+    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le) # x_loc of the leading edge of the projected c_mac
     x_cg_low = c_mac_w*h_low+x_le_wing
     x_cg_high = c_mac_w*h_high+x_le_wing
     print("Safe CG enveloppe: ", "[", x_cg_low, ";", x_cg_high, "]", "[m] \n")
@@ -180,7 +179,7 @@ print("CG of the  sailplane before ballasts computation: ", x_cg, "m")
 
 # CG of the empty sailplane (i.e., without ballasts and crew)
 x_cg_empty = compute_x_cg_empty()
-#print("CG of the empty sailplane: ", x_cg_empty, "m")
+print("CG of the empty sailplane: ", x_cg_empty, "m")
 
 # Static pitch stability of the sailplane without ballasts
 h=compute_h(x_cg)
@@ -189,7 +188,7 @@ K_n=compute_K_n(h_n, h)
 print("Pitch stability Kn: ", K_n, "[-]")
 
 # Enveloppe of the stable CG 
-x_cg_enveloppe = x_cg_enveloppe(h_n)
+x_cg_env = x_cg_enveloppe(h_n)
 
 # CG with ballasts 
 x_cg = ballast_positions()
@@ -202,10 +201,10 @@ K_n=compute_K_n(h_n, h)
 print("Pitch stability Kn: ", K_n, "[-]")
 
 # Pitch stability diagram 
-plot_results(x_cg_enveloppe,x_cg_empty,x_cg,x_cg, h_n)
+plot_results(x_cg_env,h_n)
 
 # Yaw stability 
-l_F = x_t_v - x_w # (see Conceptual Design slide 56)
+l_F = x_ac_v - x_cg # (see Conceptual Design slide 56)
 yaw_stab = yaw_stability(x_cg, l_F)
 print("Yaw stability dCn_beta:", yaw_stab, "[-]")
 

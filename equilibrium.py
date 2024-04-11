@@ -47,7 +47,7 @@ def ballast_positions(x_crew1,x_crew2, x_b_w, x_b_t, W_crew1, W_crew2, print_T=T
         print("Stable without ballasts")
 
     if is_kn_ok==False:
-        m_lim_tot=75 #Total ballast weight admissible
+        m_lim_tot=60 #Total ballast weight admissible
         m_lim_tail=15 #Maximum ballast weight at the tail 
         m_lim_crew=m_lim_tot-m_lim_tail #Maximum ballast weight under the crew
         mb1=np.arange(0,m_lim_crew+1,7.5)*g
@@ -143,7 +143,6 @@ def Drag_horizontal_stabilizer(alpha, C_L):
 #first version, not used for now
 def compute_moments(alpha):
     #Compute the moment at the MAC for the wing
-
     N_wing=np.cos(aoa_w*np.pi/180)*L_w + np.sin(aoa_w*np.pi/180)*D_w #L=Lift, D=Drag
     #M_AC_wing=(x_AC-x_CP)*N_wing
     M_AC_wing=0     # ok comme assumption ?? on est en 3D ici
@@ -192,14 +191,14 @@ def Equilibrium_validation(alpha, W_crew11, W_crew22, print_T=True):
     
     x_cg=compute_x_cg(W_b, x_b, W_crew11, W_crew22)
     h=compute_h(x_cg)
-    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)
-    h_0=(x_w-x_le_wing)/c_mac_w
+    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le)
+    h_0=(x_ac_w-x_le_wing)/c_mac_w
     
-    l_T=x_t_h-x_cg     
+    l_T=x_ac_h-x_cg     
     M_0, M_T=compute_moments_2() #calcul les moments de la wing et de l'empennage (sens positif pour le nez de l'avion qui monte)
     print("M_0:", M_0)
     #print("h, h_0, c__w:", h, h_0, c__w)
-    Delta_Moment_wo_b=M_0+L_w*(h-h_0)*c_mac_w-L_T*l_T+M_T
+    Delta_Moment_wo_b = M_0 + L_w*(h-h_0)*c_mac_w - L_T*l_T + M_T
 
     #Avec ballast
     W_ballast1, W_ballast2=ballast_positions(x_crew1,x_crew2, x_b_w, x_b_t, W_crew11, W_crew22, print_T)
@@ -217,7 +216,7 @@ def Equilibrium_validation(alpha, W_crew11, W_crew22, print_T=True):
 
     x_cg=compute_x_cg(W_ballast1+W_ballast2, x_b, W_crew11, W_crew22)
     h=compute_h(x_cg)
-    l_T=x_t_h-x_cg
+    l_T=x_ac_h-x_cg
 
     M_0, M_T=compute_moments_2() #calcul les moments de la wing et de l'empennage (sens positif pour le nez de l'avion qui monte)
     
@@ -235,7 +234,7 @@ def Equilibrium_validation(alpha, W_crew11, W_crew22, print_T=True):
 #Equilibrium_validation(0, 120*g,120*g)
 
 #print(Lift_horizontal_stabiliser(5))
-min_w=70
+min_w=40
 max_w=120
 step=10
 
