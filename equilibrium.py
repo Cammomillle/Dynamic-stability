@@ -234,7 +234,7 @@ def Equilibrium_validation(alpha, W_crew11, W_crew22, print_T=True):
 #Equilibrium_validation(0, 120*g,120*g)
 
 #print(Lift_horizontal_stabiliser(5))
-min_w=40
+min_w=50
 max_w=120
 step=10
 
