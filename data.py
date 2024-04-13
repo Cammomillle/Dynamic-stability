@@ -44,6 +44,7 @@ sweep_w = -1.105*np.pi/80       # Sweep angle of the wing (quarter chord)
 sweep_w_half = -2.2089*np.pi/180 # Sweep angle of the wing (half chord)
 sweep_w_le = 0  # sweep angle of the wing at the le
 dihedral_w = 1*np.pi/180 
+theta_w = 1*np.pi/180
 
 a0_w = 6.31206     # dcl_w/dalpha 
 a_w = 5.62704      # dCL_w/dalpha 
@@ -99,6 +100,7 @@ AR_h = b_h**2/S_h   # AR of the horizontal empennage
 sweep_h = np.arctan((0.75*(c_h_root-c_h_tip))/(b_h/2)) # Sweep angle of the horizontal empennage
 sweep_h_half = np.arctan(0.5*(c_h_root-c_h_tip)/(b_h/2)) # Sweep angle of the horizontal empennage at the half chord
 sweep_h_le = 5.71*np.pi/180
+theta_h = -1.45*np.pi/180
 
 #Re=879.000 for the horizontal stabilizer. With airfool tools, at Re=1.000.000:
 CD_0_h = 0.014          # same as the wing, from conceptual design, sld 61
@@ -140,6 +142,9 @@ x_main_gear = 3.5          # main gear
 x_gear_2 = l_fus-0.55      # last gear                          
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
 x_flight_control = x_crew1-0.2 # assumption of 20cm between first pilots and commands
+
+#********** Aerodynamics **************
+S_N = 0.5308287436110252 # maximum section area
 
 #********** Pitch stability **************
 K_n_low = 0.05      # Stability min to be stable
