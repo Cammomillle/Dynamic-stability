@@ -10,13 +10,12 @@ from functions import *
 """
 THE FOLLOWING VALUES MUST CHANGE !!
 """
-CD0=0.014
-T=-4.8+273.15 #temperature at 10 000 ft ! ->    shit ass guess !!!!
+CD0=0.00964
+T=-4.8+273.15 # temperature at 10 000 ft ! ->    shit ass guess !!!!
 nu = 1.694*10**(-5) #Ns/m^2
-#rho must be a function of altitude 
-#z_V in data (dynamic stability part)
-# a_rudder to verify
-# "S" in derivatives commputation, not sure wether it is S_w_total or S_w
+rho = 0.909 # at 10,000 feet (assumed equilibrium position)
+V0 = 28.809 # m/s
+gamma = 1.4 
 
 """  END OF SUSPECT VALUES """
 
@@ -80,10 +79,6 @@ def compute_long_matrices(m,theta_e,Iy,X_w_dot,Z_w_dot,M_w_dot,X_u,X_w,X_q,Z_u,Z
     #B_2=np.linalg.inv(A2) @ C2
     return A_2
 
-"----------------------------------------------Inertias------------------------------------------"    
-def compute_inertias():
-    return 
-
 "-------------------------------------------------Utilities--------------------------------------"
 def CL_alpha_wing(M):
     beta=np.sqrt(1-M**2)
@@ -107,12 +102,6 @@ def CL_alpha_vertical_tail(M):
     CL_alphaV=(2*np.pi*AR_v_eff)/(2+np.sqrt((AR_v_eff*beta/k)**2*(1+np.tan(sweep_v_half)**2/beta**2)+4)) 
     return CL_alphaV
 
-def CL_beta_rudder(M):
-    beta=np.sqrt(1-M**2)
-    k=dclF_dbeta/(2*np.pi)
-    CL_alphaR=(2*np.pi*AR_r*2)/(2+np.sqrt((AR_r*2*beta/k)**2*(1+np.tan(sweep_r_half)**2/beta**2)+4))    # we multiply the AR_v by two because the formula is ok for a full wing
-    return CL_alphaR/2
-
 def compute_CL(V_0):
     return 2*W/(rho*V_0**2*S_w_total)
 
@@ -131,7 +120,6 @@ def compute_response(A,B,C,D,input_,T,X0):
 "----------------------------------------------DATCOM longitudinal derivatives--------------------------------"
 def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     " SLIDE 19 DATCOM "
-    " DIAMETRE FUSELAGE PUE DU CUL ON A PRIS EPAISSEUR FUSELAGE A LA PLACE MAIS CEST NUL!!!!"
     a=np.sqrt(R*gamma*T)
     Mach=V0/a 
     x_cg=compute_x_cg(W_b,x_b,W_crew1,W_crew2)
@@ -167,31 +155,36 @@ def u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha,alpha_0):
 
     #---- CL derivative ----
     CL_alpha_for_mach,CD_alpha,CM_alpha=alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0) #CL_alpha for a given mach M !
-       
-    CL_for_mach=CL_alpha_for_mach*(alpha-alpha_0)
+    #CL_for_mach=CL_alpha_for_mach*(alpha-alpha_0)
     #CL_u=Mach**2/(1-Mach**2) * CL_for_mach # ATTENTION recompute CL for the given mach !!
+
+    # Calcul alternatif donné par Prof. Dimitriadis
     CL = compute_CL_bis(Mach, alpha)                     # alpha = alpha_e assumption !!!
     CL_u = 2*CL - alpha_e*CL_alpha_for_mach
     
     #---- CD derivative ----
-    V0_plus=V0+2 #an increment on the speed
-    Mach_plus=V0_plus/a
-    dM=Mach_plus-Mach
-    CL_alpha_plus,_,_=alpha_derivatives(W_b, x_b, W_crew1, W_crew2, V0_plus)
-    CL_plus=CL_alpha_plus*(alpha-alpha_0)
-    dCD_dM=(CL_plus**2-CL_for_mach**2)/(dM*np.pi*AR_w*e_w) #We assumed that CD0 was independent of M !! -> is it okay ?
+    #V0_plus=V0+2 #an increment on the speed
+    #Mach_plus=V0_plus/a
+    #dM=Mach_plus-Mach
+    #CL_alpha_plus,_,_=alpha_derivatives(W_b, x_b, W_crew1, W_crew2, V0_plus)
+    #CL_plus=CL_alpha_plus*(alpha-alpha_0)
+    #dCD_dM=(CL_plus**2-CL_for_mach**2)/(dM*np.pi*AR_w*e_w) #We assumed that CD0 was independent of M !! -> is it okay ?
     "dCD_dm doit être calculé comme suit : 1) calculer CL pour M et pour M+delta M et en tirer les CD associés depuis la drag polar puis déf de la dérivée "
     #CD_u=Mach*dCD_dM
     "Here we will assume that x_ac_w doesn't move with the mach, which should be fine for low Mach n# (don't know any better)"
+
+    # Calcul alternatif donné par Prof. Dimitriadis
     CD = CD0 + CL**2/(np.pi*AR_w*e_w)
     CD_u = 2*CD - alpha_e*CD_alpha
 
     #---- CM derivative ----
-    x_ac_plus=x_w
-    x_ac_for_mach=x_w 
-    dxac_w_dM=x_ac_plus-x_ac_for_mach/dM
+    #x_ac_plus=x_w
+    #x_ac_for_mach=x_w 
+    #dxac_w_dM=x_ac_plus-x_ac_for_mach/dM
     #CM_u=-CL_for_mach * dxac_w_dM
-    CM = 0  # at equilibrium                                        # to verify !!!
+
+    # Calcul alternatif donné par Prof. Dimitriadis
+    CM = 0  # at equilibrium                                       
     CM_u = 2*CM-alpha_e*CM_alpha
 
     return CD_u, CL_u, CM_u
@@ -297,11 +290,11 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0, U_e, W_e):
     C_ze = (-L_e*np.cos(alpha_e) - D_e*np.sin(alpha_e))/(0.5*rho*V0**2*S_w_total)
     C_xe = (L_e*np.sin(alpha_e) - D_e*np.cos(alpha_e))/(0.5*rho*V0**2*S_w_total)
     
-    # dimensional values !
+    # must translate in dimensional values !
     X_u = CL_u*np.sin(alpha_e) - CD_u*np.cos(alpha_e)
     X_u = X_u*0.5*rho*V0*S_w_total  
     X_w = 1/(np.cos(alpha_e))*(-C_ze+CL_alpha*np.sin(alpha_e) - CD_alpha*np.cos(alpha_e))
-    X_w = X_w*0.5*rho*V0*S_w_total
+    X_w = X_w*0.5*rho*S_w_total
     X_q = CL_q*np.sin(alpha_e) - CD_q*np.cos(alpha_e)
     X_q = X_q*0.5*rho*V0*S_w_total*c_mac_w
     X_w_dot = 1/np.cos(alpha_e)*(CL_alpha_dot*np.sin(alpha_e)-CD_alpha_dot)
@@ -310,7 +303,7 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0, U_e, W_e):
     Z_u = -(CL_u*np.cos(alpha_e) + CD_u*np.sin(alpha_e))
     Z_u = Z_u*0.5*rho*V0*S_w_total
     Z_w = 1/np.cos(alpha_e)*(C_xe - CL_alpha*np.cos(alpha_e) - CD_alpha*np.sin(alpha_e))
-    Z_w = Z_w*0.5*rho*V0*S_w_total
+    Z_w = Z_w*0.5*rho*S_w_total
     Z_q = -(CL_q*np.cos(alpha_e) + CD_q*np.sin(alpha_e))
     Z_q = Z_q*0.5*rho*V0*S_w_total*c_mac_w
     Z_w_dot = -1/np.cos(alpha_e)*(CL_alpha_dot*np.cos(alpha_e) + CD_alpha_dot*np.sin(alpha_e))
@@ -321,7 +314,7 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0, U_e, W_e):
     M_q = CM_q
     M_q = M_q*0.5*rho*V0*S_w_total*c_mac_w**2
     M_w = 1/np.cos(alpha_e)*CM_alpha
-    M_w = M_w*0.5*rho*V0*S_w_total*c_mac_w
+    M_w = M_w*0.5*rho*S_w_total*c_mac_w
     M_w_dot = 1/np.cos(alpha_e)*CM_alpha_dot
     M_w_dot = M_w_dot*0.5*rho*S_w_total*c_mac_w**2
     #Z_eta = -CL_eta*np.cos(alpha_e) - CD_eta*np.sin(alpha_e)
@@ -599,7 +592,7 @@ A_long = compute_long_matrices(m,theta_e,Iy,X_w_dot,Z_w_dot,M_w_dot,X_u,X_w,X_q,
 eigenval_A_long, eigenvect_A_long = np.linalg.eig(A_long)
 #print("A_long:", A_long)
 #print("eigenVect of A_long: ", eigenvect_A_long)
-#print("eigenVal of A_long: ", eigenval_A_long)
+print("eigenVal of A_long: ", eigenval_A_long)
 
 
 #-------- Lateral matrix A computation --------

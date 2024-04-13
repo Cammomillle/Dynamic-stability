@@ -132,7 +132,7 @@ def Lift_horizontal_stabilizer(alpha):
 #compute the drag of the horizontal stabilizer
 def Drag_horizontal_stabilizer(alpha, C_L):
     alpha=np.pi/180*alpha
-    e=0.895 # correction, (data d'un glider) dans le slide 61 du cours concptual design d'autres valeurs sont données
+    e=0.971 # correction, (data d'un glider) dans le slide 61 du cours concptual design d'autres valeurs sont données
     AR=AR_h
     S_emp=S_h
     C_D_0=CD_0_h     # we take the same value as for the wing

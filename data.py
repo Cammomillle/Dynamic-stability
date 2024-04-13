@@ -51,7 +51,7 @@ alpha_0 = -5.88608*np.pi/180 # zero lift angle [radians]
 c_m_w = -0.18      # Moment coefficient of the wing
 z_wing = 0.85      # Height of the wing
 aoa_w = 0          # AoA in configuration 1
-e_w = 0.895        # Ostwald number
+e_w = 0.9335        # Ostwald number
 L_w = 6864.655     # Lift from the wing in configuration 1
 D_w = 198.99029    # Drag from the wing in configuration 1
 
