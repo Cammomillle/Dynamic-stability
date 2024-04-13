@@ -35,10 +35,11 @@ def cg_diag():
             # On calcule le x_cg sans ballasts et on vérifie la stabilité
             W_b=0
             x_b=0
-            x_cg=compute_x_cg(W_b, x_b, W_crew1[i], W_crew2[j])
-            h=compute_h(x_cg)
-            h_n=compute_hn(x_cg)
-            K_n,is_kn_ok=compute_K_n(h_n,h)
+            #x_cg=compute_x_cg(W_b, x_b, W_crew1[i], W_crew2[j])
+            #h=compute_h(x_cg)
+            #h_n=compute_hn(x_cg)
+            #K_n,is_kn_ok=compute_K_n(h_n,h)
+            K_n, is_kn_ok = compute_K_n_bis(W_b, x_b, W_crew1[i], W_crew2[j])
 
             if is_kn_ok==True:
                 plt.scatter(W_crew2[j]/(0.4536*g),W_crew1[i]/(0.4536*g),color='#7db928')
@@ -59,10 +60,11 @@ def cg_diag():
                       if(W_b==0):
                           continue
                       x_b=(x_b_w*mb1[k]+x_b_t*mb2[l])/W_b # center of gravity of the ballasts 
-                      x_cg=compute_x_cg(W_b, x_b, W_crew1[i], W_crew2[j])
-                      h=compute_h(x_cg)
-                      h_n=compute_hn(x_cg)
-                      K_n,is_kn_ok=compute_K_n(h_n,h)
+                      #x_cg=compute_x_cg(W_b, x_b, W_crew1[i], W_crew2[j])
+                      #h=compute_h(x_cg)
+                      #h_n=compute_hn(x_cg)
+                      #K_n,is_kn_ok=compute_K_n(h_n,h)
+                      K_n, is_kn_ok = compute_K_n_bis(W_b, x_b, W_crew1[i], W_crew2[j])
                       if(is_kn_ok==True):
                           if(mb1[k]==0):
                               color='orange'

@@ -30,7 +30,7 @@ W_b_t = 0*g     # ballasts at tail
 W_b = W_b_crew + W_b_t  # ballasts total weight
 
 W_crew1 = 80*g   # 1 st crew
-W_crew2 = 80*g   # 2 nd crew
+W_crew2 = 122*g   # 2 nd crew
 
 #******* CG of the ballasts **********
 x_b = 0
@@ -40,15 +40,13 @@ if(W_b!=0):
 def round_formatter(value, pos):
     return round(value, 2) 
 
-def plot_results(x_cg_enveloppe,h_n):
+def plot_results(x_cg_enveloppe, h_n):
 
-    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le)
-    x_n = (h_n*c_mac_w+x_le_wing)
-    x_cg_min = compute_x_cg(60*g, x_crew1, 40*g, 0) # CG position for 1 crew of 90lb
-    x_cg_max = compute_x_cg(15*g, x_t_v, 122.5*g, 122.5*g) # CG position for 2 crews of 270lb each
-
+    x_n = h_n*c_mac_w
+    x_cg_min = compute_x_cg(37.5*g, x_b_w, 40*g, 0) # CG position for 1 crew of 90lb
+    x_cg_max = compute_x_cg(15*g, x_b_t, 122*g, 122*g) # CG position for 2 crews of 270lb each
     plt.scatter([x_cg_enveloppe[0]*3.28084,x_cg_enveloppe[1]*3.28084],[0,0],label="Static margin range",color="darkorange", s=80)
-    plt.scatter(x_w*3.28084,0,label="AC", s=80, color="yellowgreen")
+    plt.scatter(x_ac_w*3.28084,0,label="AC", s=80, color="yellowgreen")
     plt.scatter(x_n*3.28084,0,label="NP", s=80, color='red')
     plt.scatter([x_cg_min*3.28084, x_cg_max*3.28084], [0,0], label="CG variation", s=80, color="darkcyan")
     plt.plot([2.6*3.28084,3.7*3.28084],[0,0],color="black")
@@ -67,8 +65,8 @@ def plot_results(x_cg_enveloppe,h_n):
     plt.plot(x_cc+x_debut_wing,y_tab,label="wings")"""
     ax = plt.gca()
     ax.set_ylim(-0.5,0.5)
-    ax.set_xlim((10.30,11.15))
-    ticks=[x_cg_enveloppe[0],x_cg_enveloppe[1],x_w, x_n, x_cg_min, x_cg_max]
+    ax.set_xlim((10.0,11.2))
+    ticks=[x_cg_enveloppe[0],x_cg_enveloppe[1],x_ac_w, x_n, x_cg_min, x_cg_max]
     ticks=np.array(ticks)*3.28084
     ax.set_xticks(ticks)
     ax.get_yaxis().set_visible(False)
@@ -90,9 +88,8 @@ def x_cg_enveloppe(h_n): # computation of the CG enveloppe diagram
     """
     h_low = h_n-K_n_high  # h_min to be stable
     h_high = h_n-K_n_low  # h_max to be stable
-    x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le) # x_loc of the leading edge of the projected c_mac
-    x_cg_low = c_mac_w*h_low+x_le_wing
-    x_cg_high = c_mac_w*h_high+x_le_wing
+    x_cg_low = c_mac_w*h_low
+    x_cg_high = c_mac_w*h_high
     print("Safe CG enveloppe: ", "[", x_cg_low, ";", x_cg_high, "]", "[m] \n")
     return x_cg_low, x_cg_high
     
@@ -100,10 +97,11 @@ def ballast_positions():
             # On calcule le x_cg sans ballasts et on vérifie la stabilité
             W_b=0
             x_b=0
-            x_cg=compute_x_cg(W_b, x_b, W_crew1, W_crew2)
-            h=compute_h(x_cg)
-            h_n=compute_hn(x_cg)
-            K_n,is_kn_ok=compute_K_n(h_n,h)
+            #x_cg=compute_x_cg(W_b, x_b, W_crew1, W_crew2)
+            #h=compute_h(x_cg)
+            #h_n=compute_hn(x_cg)
+            #K_n,is_kn_ok=compute_K_n(h_n,h)
+            K_n,is_kn_ok=compute_K_n_bis(W_b, x_b, W_crew1, W_crew2)
 
             if is_kn_ok==True:
                 print("Stable without ballasts")
@@ -126,9 +124,9 @@ def ballast_positions():
                           continue
                       x_b=(x_b_w*mb1[k]+x_b_t*mb2[l])/W_b # center of gravity of the ballasts 
                       x_cg_ballast=compute_x_cg(W_b, x_b, W_crew1, W_crew2)
-                      h=compute_h(x_cg_ballast)
-                      h_n=compute_hn(x_cg)
-                      K_n,is_kn_ok=compute_K_n(h_n,h)
+                      #h=compute_h(x_cg_ballast)
+                      #h_n=compute_hn(x_cg)
+                      K_n,is_kn_ok=compute_K_n_bis(W_b, x_b, W_crew1, W_crew2)
                       if(is_kn_ok==True):
                           fine=True
                           W_b_list.append(W_b)
@@ -138,7 +136,7 @@ def ballast_positions():
                 print("[weight b1, weight b2, CG with ballasts]: ", best_list)
               except:
                 print("No stable configurations with ballasts")
-                return x_cg
+                return 0, 0
               for val in best_list:
                   print(val)
                   if val[0]+val[1]==Wbmin:
@@ -149,10 +147,10 @@ def ballast_positions():
                           
               if(fine==False):
                   print("No stable configurations with ballasts")
-                  return x_cg
+                  return 0, 0
               else:
                   print("Ballasts: {0} kg under crew1 seat and ".format(w_b_1/g)+"{0} kg at the tail CG ".format(w_b_2/g))
-                  return x_cg_ballast          
+                  return w_b_1+w_b_2, (w_b_1*x_b_w+w_b_2*x_b_t)/(w_b_1+w_b_2)
 
 def yaw_stability(l_cg, l_F): # see Conceptual design slides 56-57
     dCn_i_beta = -0.017   # empirical values for high wings                  !!! à changer si on modifie la position des ailes !!!
@@ -182,23 +180,27 @@ x_cg_empty = compute_x_cg_empty()
 print("CG of the empty sailplane: ", x_cg_empty, "m")
 
 # Static pitch stability of the sailplane without ballasts
-h=compute_h(x_cg)
-h_n=compute_hn(x_cg)
-K_n=compute_K_n(h_n, h)
+#h=compute_h(x_cg)
+#h_n=compute_hn(x_cg)
+#K_n=compute_K_n(h_n, h)
+K_n, is_kn_ok=compute_K_n_bis(W_b, x_b, W_crew1, W_crew2)
+h_n = K_n + x_cg/c_mac_w
 print("Pitch stability Kn: ", K_n, "[-]")
 
 # Enveloppe of the stable CG 
 x_cg_env = x_cg_enveloppe(h_n)
 
-# CG with ballasts 
-x_cg = ballast_positions()
-print("CG of the sailplane: ", x_cg, "m")
+if is_kn_ok == False:
+    # CG with ballasts 
+    W_ballasts, x_cg_ballasts = ballast_positions()
 
-# Static pitch stability of the sailplane with ballasts
-h=compute_h(x_cg)
-h_n=compute_hn(x_cg)
-K_n=compute_K_n(h_n, h)
-print("Pitch stability Kn: ", K_n, "[-]")
+    # Static pitch stability of the sailplane with ballasts
+    #h=compute_h(x_cg)
+    #h_n=compute_hn(x_cg)
+    #K_n=compute_K_n(h_n, h)
+    K_n=compute_K_n_bis(W_ballasts, x_cg_ballasts, W_crew1, W_crew2)[0]
+    h_n = K_n + x_cg/c_mac_w
+    print("Pitch stability Kn: ", K_n, "[-]")
 
 # Pitch stability diagram 
 plot_results(x_cg_env,h_n)
@@ -209,6 +211,3 @@ yaw_stab = yaw_stability(x_cg, l_F)
 print("Yaw stability dCn_beta:", yaw_stab, "[-]")
 
 
-print("h", h)
-
-print("hn", h_n)

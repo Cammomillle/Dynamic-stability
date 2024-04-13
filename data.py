@@ -70,9 +70,9 @@ lambda_v = c_v_tip/c_v_root         # taper ratio of the fin
 c_mac_v = 2/3 * c_v_root * (1 + lambda_v + lambda_v**2)/(1 + lambda_v)  # mean aerodynamic chord of the fin
 y_mac_v = 0.698    # à vérifier !!!
 AR_v = b_v**2/S_fin   # AR of the horizontal empennage
-sweep_v = np.arctan((0.75*c_v_root + np.tan(8*np.pi/180)*b_v - 0.75*c_v_tip)/b_v)  # Sweep angle of the fin (LE sweep angle)
+sweep_v = np.arctan((0.75*c_v_root + np.tan(8*np.pi/180)*b_v - 0.75*c_v_tip)/b_v)  
 sweep_v_half = np.arctan((0.5*c_v_root + np.tan(8*np.pi/180)*b_v - 0.5*c_v_tip)/b_v) # Sweep angle of the fin at the half chord
-sweep_v_le = 22.16*np.pi/180
+sweep_v_le = 22.16*np.pi/180 # Sweep angle of the fin (LE sweep angle)
 
 dclF_dbeta = 6.36    # slope of the CL curve for the fin in yaw motion (2D) = a0_v
 dCLF_dbeta = compute_lift_curve_slope(AR_v*2, dclF_dbeta, sweep_v_half, beta=1)  # slope of the CL curve for the fin in yaw motion (3D) = a_v
@@ -115,7 +115,7 @@ z_tail = 1.0216 + b_v   # Height of the tail
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 2.9
+x_debut_wing = 2.85
 x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w_le, c_mac_w)
 x_w = x_debut_wing + 0.428
 theta_w = 1.4/180*np.pi
@@ -137,7 +137,7 @@ x_b_t = x_t_v       # ballast au CG du fin
 #x_fus = 0.45*l_fus         # fuselage 
 x_fus = 3.2           
 x_motor = 4.               # motor                              
-x_batteries = 4.5          # batteries                          
+x_batteries = 4.7          # batteries                          
 x_main_gear = 3.5          # main gear                          
 x_gear_2 = l_fus-0.55      # last gear                          
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
@@ -158,19 +158,21 @@ bf2 = 0.2
 h_f_max = 0.974
 
 # ---------- Dynamic stability ------------
-alpha_e = 0 
+alpha_e = 0     # equilibrium aoa
 h_H = 1.646     # vertical distance between x_ac of tail and wing
 l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
-z_F = 0.5       # A MODIFIER !!!!!!
-Z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
-d = 0.4956851278    # value that could change !!! is this d from slide 49? (if yes, then it can be calculated like in compute_Ki())
+z_V = 0.2      # A MODIFIER !!!!!
+z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
+d = 0.4956851278    # = sqrt(averag fusegale cross sectional area/0.7854) from slide 13 lat. deriv. !! value that could change !!! 
+d_fus = 0.637       # fuselage diameter (mean value)
 alpha_dcl = -0.63   # fin flap value (extracted from slide 65)
 alpha_dcl_ratio = 1.05 # fin flap value ratio (extracted from slide 65; conservative value)
 
-eta = 20*np.pi/180                                      # eta = max elevator deflection ?
-df = 30*np.pi/180                                       # df = max rudder deflection ? pq flaps deflection dans la formule ?
+eta = 20*np.pi/180  # max elevator deflection   
+df = 30*np.pi/180   # max rudder deflection                               
 
-Ix = 3384.336
-Iy = 1513.858
-Iz = 4828.946
+Ix = 3384.336 + 18.580411
+Iy = 3100 + 1331.37325
+Iz = 4828.946 + 1319.354609
 Ixz = 141.718
+

@@ -1,5 +1,5 @@
 from data import *
-
+from scipy.optimize import curve_fit, fmin
 #***************************************************************************
 #*** Functions to compute the stability and equilibrium of the sailplane ***
 #***************************************************************************
@@ -60,3 +60,72 @@ def compute_h(x_cg):
     x_le_wing = compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w_le) # x-location of the LE of the projected airfoil of the wing
     h=(x_cg-x_le_wing)/c_mac_w # by definition !
     return h
+
+def CL_alpha_wing(M):
+    beta=np.sqrt(1-M**2)
+    k=a0_w/(2*np.pi)
+    CL_alphaW=(2*np.pi*AR_w)/(2+np.sqrt((AR_w*beta/k)**2*(1+np.tan(sweep_w_half)**2/beta**2)+4))
+    return CL_alphaW
+
+def downwash():
+    K_A = 1/AR_w - 1/(1+AR_w**1.7)
+    K_lambda = (10-3*lambda_w)/7
+    K_H = (1-h_H/b_w)/(np.sqrt(2*l_H/b_w))
+    grad_down_M0 = 4.44*(K_A*K_lambda*K_H*np.cos(sweep_w))**1.19
+    grad_down = grad_down_M0*1      # approx that CL_alpha,wM/CL_alpha,wM=0 ~ 1
+    return grad_down 
+
+def body_sum(M, x_cg):  # computation of the data required to compute the body effect on downwash for CM_alpha
+    dXi = 0.1
+    frames = np.arange(pe.pos[0]/1000, pe.pos[-1]/1000, dXi)
+
+    def hyperbole(x, a, b, c):
+        return b/x**a + c
+
+    figure11 = np.genfromtxt('LongData/Figure1_1.csv', delimiter=',')
+    Rfigure11 = curve_fit(hyperbole, figure11[:,0], figure11[:,1])[0]
+    figure12 = np.genfromtxt('LongData/Figure1_2.csv', delimiter=',')
+    Rfigure12 = curve_fit(hyperbole, figure12[:,0], figure12[:,1])[0]
+    
+    global_dwash = downwash()
+
+    ret = 0.0
+    for frame in frames:
+        Wf = 2*pe.b_i(frame*1000)/1000
+
+        if frame < x_debut_wing:
+            dwash = (1 - global_dwash)*(x_debut_wing - frame)/l_H
+        elif frame > x_debut_wing + c_w_root:
+            xicf = (frame - x_debut_wing - c_w_root)/c_w_root
+            dwash = hyperbole(xicf, *Rfigure11) * CL_alpha_wing(0) / (0.08 * 180 / np.pi)
+        else:
+            dwash = 0.0
+
+        ret += Wf**2 * dwash * dXi
+    
+    return ret
+
+def compute_K_n_bis(W_b,x_b,W_crew1,W_crew2):
+    d = 0.4956851278
+    eta_h = 0.9
+    K_WB = 1-0.25*(d/b_w)**2+0.025*(d/b_w)
+    a_w = CL_alpha_wing(0)
+    grad_downwash = downwash()
+    x_cg = compute_x_cg(W_b,x_b,W_crew1,W_crew2)
+    CL_alpha_WB = K_WB*a_w 
+    M_alpha = 0.5*rho*V0**2 / 36.5 * body_sum(0, x_cg)
+    d_xac = -M_alpha / (0.5*rho*V0**2 * S_w_total * CL_alpha_wing(0))
+    x_acwb = x_ac_w+d_xac
+    num = x_acwb + dCLh_alpha_h/CL_alpha_WB * eta_h * S_h/S_w_total * x_ac_h * (1-grad_downwash)
+    den = 1+dCLh_alpha_h/CL_alpha_WB * eta_h * S_h/S_w_total * (1-grad_downwash)
+    x_ac = num/den
+    Kn = -(x_cg-x_ac)/c_mac_w
+    
+    if(Kn >= K_n_low and Kn <= K_n_high):
+        is_kn_ok = True
+    else:
+        is_kn_ok = False
+
+    return Kn, is_kn_ok
+
+
