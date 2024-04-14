@@ -103,7 +103,7 @@ def max_height_width_ratio():
     max_width = np.max(new_b_low-new_b_top)
     return max_height/max_width
 
-def mean_diameter():
+def mean_diameter(): # rough estimation
     diam = np.sqrt((new_y_top-new_y_low)**2 + (new_b_low-new_b_top)**2)
     return np.mean(diam)/1000
 
@@ -112,4 +112,4 @@ def mean_diameter():
 
 #print("Side area: ", side_area()/10**6, "m^2")
 #print("h/w: ", max_height_width_ratio())
-print("Mean diameter:", mean_diameter())
+

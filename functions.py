@@ -128,4 +128,3 @@ def compute_K_n_bis(W_b,x_b,W_crew1,W_crew2):
 
     return Kn, is_kn_ok
 
-

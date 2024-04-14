@@ -49,6 +49,7 @@ def plot_results(x_cg_enveloppe, h_n):
     plt.scatter(x_ac_w*3.28084,0,label="AC", s=80, color="yellowgreen")
     plt.scatter(x_n*3.28084,0,label="NP", s=80, color='red')
     plt.scatter([x_cg_min*3.28084, x_cg_max*3.28084], [0,0], label="CG variation", s=80, color="darkcyan")
+    plt.scatter([compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)*3.28084, (compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) + c_mac_w)*3.28084], [0,0], label="Wing MAC", s=80, color="magenta")
     plt.plot([2.6*3.28084,3.7*3.28084],[0,0],color="black")
     """x_tab=np.linspace(-c__w/2,c__w/2,100)
     a=c__w/2
@@ -65,7 +66,7 @@ def plot_results(x_cg_enveloppe, h_n):
     plt.plot(x_cc+x_debut_wing,y_tab,label="wings")"""
     ax = plt.gca()
     ax.set_ylim(-0.5,0.5)
-    ax.set_xlim((10.0,11.2))
+    #ax.set_xlim((10.0,11.2))
     ticks=[x_cg_enveloppe[0],x_cg_enveloppe[1],x_ac_w, x_n, x_cg_min, x_cg_max]
     ticks=np.array(ticks)*3.28084
     ax.set_xticks(ticks)
