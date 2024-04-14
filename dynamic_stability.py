@@ -367,8 +367,6 @@ def compute_Ki():
             return -pe.bh_i(x*1000)/1000
     xd = fmin(bh_at_wing_intersection, 3.3)[0]
     d_Ki = pe.bh_i(xd*1000)/1000
-    print("d_Ki", d_Ki)
-
     r = z_w/(d_Ki/2)
 
     # Return K_i (Corr. extracted from slide 49)
@@ -582,6 +580,46 @@ def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     # N_ksi
     return N_v, N_p, N_r
 
+def long_modes_caract(eigenVals): # gives the natural frequency and damping ratio of the longitudinal modes (phugoid and short period)
+    # Imaginary part correspond to damped natural frequency : higher freq = short period oscillations and lower freq = phugoids
+    phugoids_index = np.where(eigenVals.imag == min(abs(eigenVals.imag)))
+    short_period_index = np.where(eigenVals.imag == max(abs(eigenVals.imag)))
+    phugoids = complex(eigenVals[phugoids_index][0])
+    short_period = complex(eigenVals[short_period_index][0])
+
+    # Natural frequencies computation
+    omega_n_phug = np.sqrt((phugoids.real)**2 + (phugoids.imag)**2)         # phugoids 
+    omega_n_sp = np.sqrt((short_period.real)**2 + (short_period.imag)**2)   # short period 
+
+    # Damping ratios computation
+    damp_phug = -phugoids.real/omega_n_phug
+    damp_sp = - short_period.real/omega_n_sp
+
+    print("omega_n_phug:", omega_n_phug, "damp_phug:", damp_phug, "omega_n_sp:", omega_n_sp, "damp_sp:", damp_sp)
+    
+    return omega_n_phug, damp_phug, omega_n_sp, damp_sp
+
+def lat_modes_caract(eigenVals): # gives the natural frequency and damping ratio of the lateral modes (dutch roll, roll subsidence, spiral mode)
+    # Complex conjudated values correspond to dutch roll, the most negative value correspond to roll subsidence and the lower amplitude one to the spiral mode
+    dutch_roll_index = np.where(eigenVals.imag < 0) # only complex conjugated pair
+    dutch_roll = complex(eigenVals[dutch_roll_index][0])
+    roll_sub_index = np.where((eigenVals.real == min(eigenVals.real)) & (eigenVals.imag == 0))   # roll subsidence is highly damped
+    roll_sub = float(eigenVals[roll_sub_index][0].real)
+    spiral_index = np.where(eigenVals.real > 0)  # spiral mode is hardly damped
+    spiral = float(eigenVals[spiral_index][0].real)
+
+    # Natural frequencies and damping computation
+    omega_n_dutch = np.sqrt((dutch_roll.real)**2 + (dutch_roll.imag)**2)
+    damp_dutch = -dutch_roll.real/omega_n_dutch
+
+    # Time constant computation (is formula tau = 1/(damp*omega_n) ok?)
+    tau_roll_sub = 1/(np.abs(roll_sub.real))
+    tau_spiral = 1/(np.abs(spiral.real))
+
+    print("omega_n_dutch:", omega_n_dutch, "damp_dutch:", damp_dutch, "tau_roll_sub:", tau_roll_sub, "tau_spiral:", tau_spiral)
+
+    return omega_n_dutch, damp_dutch, tau_roll_sub, tau_spiral
+
 #-------- Longitudinal matrix A computation ---------
 W_tot = compute_total_mass(W_b, W_crew1, W_crew2)
 m = W_tot/g
@@ -596,6 +634,7 @@ eigenval_A_long, eigenvect_A_long = np.linalg.eig(A_long)
 #print("eigenVect of A_long: ", eigenvect_A_long)
 print("eigenVal of A_long: ", eigenval_A_long)
 
+long_modes_caract(np.array(eigenval_A_long))
 
 #-------- Lateral matrix A computation --------
 alpha = alpha_e  # aircraft aoa, ok ?
@@ -608,4 +647,6 @@ eigenval_A_lat, eigenvect_A_lat = np.linalg.eig(A_lat)
 #print("\n A_lat:", A_lat)
 #print("eigenVect of A_lat: ", eigenvect_A_lat)
 print("eigenVal of A_lat: ", eigenval_A_lat)
+
+lat_modes_caract(np.array(eigenval_A_lat))
 
