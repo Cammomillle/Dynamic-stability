@@ -315,21 +315,16 @@ def CDmisc(alpha, ctx):
     aw = a + theta_w
     ah = a - theta_h
     return fus.CDmisc(a, ctx)
-
+@np.vectorize
+def CD0(alpha, ctx):
+    return CDv(alpha, ctx) + CDif(alpha, ctx) + CDmisc(alpha, ctx)
+@np.vectorize
 def CD(alpha, ctx):
-
-    return w.CD(alpha, ctx) + h.CD(alpha - 1.8/180*np.pi, ctx)*h.S/w.S + v.CD(0, ctx)*v.S/w.S + fus.CDv(alpha, ctx) + fus.CDin(alpha, ctx) + fus.CDif(alpha, ctx) + fus.CDmisc(alpha, ctx)
-
-def CD2(alpha, ctx):
     return CDv(alpha, ctx) + CDin(alpha, ctx) + CDif(alpha, ctx) + CDmisc(alpha, ctx)
 
-a = 0/180*np.pi
-ah = a - 1.8/180*np.pi
-print('CD', CD(0/180*np.pi, ctx))
-print('CD2', CD2(0/180*np.pi, ctx))
-
+print('CD(0)', CD(0/180*np.pi, ctx))
+print('CD0(0)', CD0(0/180*np.pi, ctx))
 print('RE', fus.Re(ctx))
-
 
 alpha = np.linspace(-1, 5, 100)/180*np.pi
 cdv = CDv(alpha, ctx)
