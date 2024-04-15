@@ -337,16 +337,20 @@ def derivative(func):
     eps = 0.000001
     return lambda x: (func(x+eps) - func(x-eps))/(2*eps)
 
-def compute_S0():
-    # Assumption: the body is assumed to be a circular revolution of radius
-    # defined by its lower line (pe.ll_i)
-
+def compute_x0():
     # Find x1 (maximum of derivative of body shape; here the lower body line is used)
     dsdx = lambda x: -derivative(pe.ll_i)(x)
     x1 = fmin(dsdx, 3000)[0]/1000
 
     # Get x0 (Corr. slide 49)
     x0 = l_fus*(0.378 + 0.527*(x1/l_fus))
+    
+    return x0
+
+def compute_S0():
+    # Assumption: the body is assumed to be a circular revolution of radius
+    # defined by its lower line (pe.ll_i)
+    x0 = compute_x0()
 
     # Get a and b from body shape at x0
     a = pe.a_i(x0*1000)/1000
@@ -354,6 +358,8 @@ def compute_S0():
 
     # Return ellipse area
     return np.pi * a * b
+
+print('S0', compute_S0())
 
 def compute_Ki():
     # Find d (maximum body height at wing-body intersection)
