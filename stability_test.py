@@ -25,12 +25,12 @@ plt.rcParams.update({
 #**********************************************************************************************
 
 #******* Weights [kilograms * g] **********
-W_b_crew = 0*g     # ballasts at wing
-W_b_t = 0*g     # ballasts at tail
+W_b_crew = 0*g     # ballasts at crew1
+W_b_t = 15*g         # ballasts at tail
 W_b = W_b_crew + W_b_t  # ballasts total weight
 
-W_crew1 = 80*g   # 1 st crew
-W_crew2 = 122*g   # 2 nd crew
+W_crew1 = 123*g   # 1 st crew
+W_crew2 = 123*g   # 2 nd crew
 
 #******* CG of the ballasts **********
 x_b = 0
@@ -43,13 +43,13 @@ def round_formatter(value, pos):
 def plot_results(x_cg_enveloppe, h_n):
 
     x_n = h_n*c_mac_w
-    x_cg_min = compute_x_cg(37.5*g, x_b_w, 40*g, 0) # CG position for 1 crew of 90lb
+    x_cg_min = compute_x_cg(60*g, x_b_w, 40*g, 0) # CG position for 1 crew of 90lb
     x_cg_max = compute_x_cg(15*g, x_b_t, 122*g, 122*g) # CG position for 2 crews of 270lb each
     plt.scatter([x_cg_enveloppe[0]*3.28084,x_cg_enveloppe[1]*3.28084],[0,0],label="Static margin range",color="darkorange", s=80)
     plt.scatter(x_ac_w*3.28084,0,label="AC", s=80, color="yellowgreen")
     plt.scatter(x_n*3.28084,0,label="NP", s=80, color='red')
     plt.scatter([x_cg_min*3.28084, x_cg_max*3.28084], [0,0], label="CG variation", s=80, color="darkcyan")
-    plt.scatter([compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)*3.28084, (compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) + c_mac_w)*3.28084], [0,0], label="Wing MAC", s=80, color="magenta")
+    #plt.scatter([compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)*3.28084, (compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) + c_mac_w)*3.28084], [0,0], label="Wing MAC", s=80, color="magenta")
     plt.plot([2.6*3.28084,3.7*3.28084],[0,0],color="black")
     """x_tab=np.linspace(-c__w/2,c__w/2,100)
     a=c__w/2
@@ -66,7 +66,7 @@ def plot_results(x_cg_enveloppe, h_n):
     plt.plot(x_cc+x_debut_wing,y_tab,label="wings")"""
     ax = plt.gca()
     ax.set_ylim(-0.5,0.5)
-    #ax.set_xlim((10.0,11.2))
+    ax.set_xlim((10.10,11.2))
     ticks=[x_cg_enveloppe[0],x_cg_enveloppe[1],x_ac_w, x_n, x_cg_min, x_cg_max]
     ticks=np.array(ticks)*3.28084
     ax.set_xticks(ticks)

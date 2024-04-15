@@ -202,8 +202,7 @@ def q_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     B = np.sqrt(1-(M*np.cos(sweep_w))**2)
     CL_qW = (AR_w+2*np.cos(sweep_w))/(AR_w*B+2*np.cos(sweep_w))*(1/2+2*Xw/c_mac_w)*CL_alpha_wing(M=0)
     l_T = x_ac_h - x_cg
-    l_TH = x_ac_h-x_ac_w
-    V_t_bar = (l_TH*S_h)/(S_w_total*c_mac_w)
+    V_t_bar = (l_T*S_h)/(S_w_total*c_mac_w)
     CL_qH = 2*CL_alpha_horizontal_tail(M)*eta_h*V_t_bar
     CL_q = CL_qW+CL_qH
     

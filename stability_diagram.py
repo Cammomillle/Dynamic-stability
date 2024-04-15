@@ -81,9 +81,9 @@ def cg_diag():
               else:
                   plt.scatter(W_crew2[j]/(0.4536*g),W_crew1[i]/(0.4536*g),color=color)
     red_patch = mpatches.Patch(color='#e62d31', label='Unstable')
-    green_patch = mpatches.Patch(color='#7db928', label='Stable')
-    orange_patch = mpatches.Patch(color='orange', label='Tail Ballast')
-    blue_patch = mpatches.Patch(color='deepskyblue',label='Crew Ballast')
+    green_patch = mpatches.Patch(color='#7db928', label='Stable without ballast')
+    orange_patch = mpatches.Patch(color='orange', label='Stable with tail ballast')
+    blue_patch = mpatches.Patch(color='deepskyblue',label='Stable with crew ballast')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.17),ncol=3, fancybox=True, shadow=True,fontsize=11,handles=[red_patch,green_patch,orange_patch,blue_patch])                            
     plt.xlabel("Crew member 2 [lb]",fontsize=11)
     plt.ylabel("Crew member 1 [lb]",fontsize=11)
