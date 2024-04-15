@@ -135,7 +135,7 @@ def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     M_alpha = 0.5*rho*V0**2 / 36.5 * body_sum(Mach, x_cg)
     d_xac = -M_alpha / (0.5*rho*V0**2 * S_w_total * c_mac_w * CL_alpha_wing(Mach))
     x_acwb = x_ac_w/c_mac_w + d_xac
-    num = x_acwb + CL_alpha_horizontal_tail(Mach)/CL_alpha_WB * eta_h * S_h/S_w_total * x_ac_h * (1-grad_downwash)  # diviser x_ac par c_mac ? 
+    num = x_acwb + CL_alpha_horizontal_tail(Mach)/CL_alpha_WB * eta_h * S_h/S_w_total * x_ac_h/c_mac_w * (1-grad_downwash)  # diviser x_ac par c_mac ? 
     den = 1 + CL_alpha_horizontal_tail(Mach)/CL_alpha_WB * eta_h * S_h/S_w_total * (1-grad_downwash)
     x_ac = num/den
     Kn = -(x_cg/c_mac_w-x_ac)
@@ -217,10 +217,7 @@ def q_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     CM_qw0 = - K*a0_w*np.cos(sweep_w)*(num1 + num2 + num3)
     CM_qw = CM_qw0*(num/den)
     CM_qh = -2*CL_alpha_horizontal_tail(M)*eta_h*V_t_bar*l_T/c_mac_w 
-    print("\n Xw:",Xw, "CL_alpha_horizontal_tail", CL_alpha_wing(M), "V_t_bar", V_t_bar, "l_T", l_T, "\n")
-
     CM_q = CM_qw + CM_qh
-    print("CMqh:", CM_qh, "CMqw:", CM_qw)
 
     return CD_q, CL_q, CM_q
 
@@ -282,14 +279,13 @@ def long_derivatives(W_b,x_b,W_crew1,W_crew2,V0, U_e, W_e):
     CD_alpha, CL_alpha, CM_alpha = alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
     CD_q, CL_q, CM_q = q_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
     CD_alpha_dot, CL_alpha_dot, CM_alpha_dot = alpha_dot_derivatives(W_b,x_b,W_crew1,W_crew2,V0)
-    print("CD_u: ", CD_u, "CL_u: ", CL_u,"CM_u: ", CM_u)
+    print("\n CD_u: ", CD_u, "CL_u: ", CL_u,"CM_u: ", CM_u)
     print("CD_alpha: ", CD_alpha, "CL_alpha: ", CL_alpha, "CM_alpha: ", CM_alpha)
     print("CD_q: ", CD_q, "CL_q: ", CL_q, "CM_q: ", CM_q)
     print("CD_alpha_dot: ", CD_alpha_dot, "CL_alpha_dot: ", CL_alpha_dot, "CM_alpha_dot: ", CM_alpha_dot)
     #CD_eta, CL_eta, CM_eta = eta_derivatives(V0)
 
     L_e = compute_total_mass(W_b, W_crew1, W_crew2)
-    D_e = 170.378 #N
     C_ze = (-L_e*np.cos(alpha_e) - D_e*np.sin(alpha_e))/(0.5*rho*V0**2*S_w_total)
     C_xe = (L_e*np.sin(alpha_e) - D_e*np.cos(alpha_e))/(0.5*rho*V0**2*S_w_total)
     
@@ -409,7 +405,7 @@ def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     Ki = compute_Ki()
     Y_v_body = -2*Ki*S0/S_w_total
     Y_v = Y_v_fin + Y_v_body + Y_v_wing
-    print("Y_v: ", Y_v)
+    print("\n Y_v: ", Y_v)
     Y_v = Y_v*0.5*rho*V0*S_w_total # dimensional
 
     # Y_p (roll rate)           
@@ -614,10 +610,11 @@ def lat_modes_caract(eigenVals): # gives the natural frequency and damping ratio
     # Time constant computation (is formula tau = 1/(damp*omega_n) ok?)
     tau_roll_sub = 1/(np.abs(roll_sub.real))
     tau_spiral = 1/(np.abs(spiral.real))
+    t_half_spiral = np.log(2)/(np.abs(spiral.real))
 
-    print("omega_n_dutch:", omega_n_dutch, "damp_dutch:", damp_dutch, "tau_roll_sub:", tau_roll_sub, "tau_spiral:", tau_spiral)
+    print("omega_n_dutch:", omega_n_dutch, "damp_dutch:", damp_dutch, "tau_roll_sub:", tau_roll_sub, "tau_spiral:", tau_spiral, "t_half_spiral:", t_half_spiral)
 
-    return omega_n_dutch, damp_dutch, tau_roll_sub, tau_spiral
+    return omega_n_dutch, damp_dutch, tau_roll_sub, tau_spiral, t_half_spiral
 
 #-------- Longitudinal matrix A computation ---------
 W_tot = compute_total_mass(W_b, W_crew1, W_crew2)
@@ -631,7 +628,7 @@ A_long = compute_long_matrices(m,theta_e,Iy,X_w_dot,Z_w_dot,M_w_dot,X_u,X_w,X_q,
 eigenval_A_long, eigenvect_A_long = np.linalg.eig(A_long)
 #print("A_long:", A_long)
 #print("eigenVect of A_long: ", eigenvect_A_long)
-print("eigenVal of A_long: ", eigenval_A_long)
+print("eigenVal of A_long: ", eigenval_A_long, "\n")
 
 long_modes_caract(np.array(eigenval_A_long))
 

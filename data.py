@@ -115,7 +115,7 @@ z_tail = 1.0216 + b_v   # Height of the tail
 def compute_x_ac(x_LE, b, taper, sweep, c_mac): 
     return x_LE + b/6*((1+2*taper)/(1+taper))*np.tan(sweep) + 0.25*c_mac
 
-x_debut_wing = 3.
+x_debut_wing = 2.9
 x_ac_w = compute_x_ac(x_debut_wing, b_w, lambda_w, sweep_w_le, c_mac_w)
 x_w = x_debut_wing + 0.428
 theta_w = 1.4/180*np.pi
@@ -129,18 +129,14 @@ x_debut_tail_h = l_fus + np.tan(8*np.pi/180)*b_v - c_v_tip
 x_ac_h = compute_x_ac(x_debut_tail_h, b_h, lambda_h, sweep_h_le, c_mac_h)
 x_t_h = x_debut_tail_h + 0.276
 x_crew1 = 1.435       # crew member 1
-x_crew1 -= 0.05
 x_crew2 = 2.575       # crew member 2
-x_crew2 -= 0.05
 
 x_b_w = x_crew1     # ballast au CG du crew 1
 x_b_t = x_t_v       # ballast au CG du fin
 
-x_fus = 3.2                # fuselage
-x_fus = 3.5           
+x_fus = 3.3                # fuselage
 x_motor = 4.               # motor  
-x_batteries = 4.7          # batteries                             
-x_batteries = 5.3                         
+x_batteries = 4.8          # batteries     
 x_main_gear = 3.5          # main gear                          
 x_gear_2 = l_fus-0.55      # last gear                          
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
@@ -162,7 +158,9 @@ h_f_max = 0.974
 
 # ---------- Dynamic stability ------------
 alpha_e = 0     # equilibrium aoa
-h_H = 1.646     # vertical distance between x_ac of tail and wing
+D_e = 170.378 #N
+
+h_H = 1.646     # vertical distance between x_ac of tail and wing   !!! à vérifier !!!
 l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
 z_V = 0.2      # A MODIFIER !!!!!
 z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
@@ -174,8 +172,9 @@ alpha_dcl_ratio = 1.05 # fin flap value ratio (extracted from slide 65; conserva
 eta = 20*np.pi/180  # max elevator deflection   
 df = 30*np.pi/180   # max rudder deflection                               
 
-Ix = 3384.336 + 18.580411
-Iy = 3100 + 1331.37325
-Iz = 4828.946 + 1319.354609
-Ixz = 141.718
+Ix = 3383.31944 + 18.580411
+Iy = 1320.1079 + 1331.37325
+Iz = 4636.2118 + 1319.354609
+Ixz = 137.65305
+
 
