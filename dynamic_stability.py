@@ -442,12 +442,13 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     a_w = CL_alpha_wing(M)
     a_v = CL_alpha_vertical_tail(M)
 
-    # L_v - pas modifié
+    # L_v 
     grad_sidewash = sidewash_beta()
     x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
     l_V = x_ac_v - x_cg
     V_F = (S_fin*l_V)/(S_w_total*b_w)
     beta = np.sqrt(1-M**2)
+    CL = compute_CL_bis(M, alpha)
     
     Clbeta_CL_half_sweep = 0.0002               
     KM_sweep = 1
@@ -455,10 +456,10 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     Clbeta_dihedral = -0.00035
     KM_dihedral = 1.005
     L_v_fin = -V_F*z_V/l_V*a_v*(1-grad_sidewash)
-    L_v_wing = 180/np.pi*( a_w*(Clbeta_CL_half_sweep*KM_sweep + Clbeta_CL_A) + dihedral_w*Clbeta_dihedral)
+    L_v_wing = 180/np.pi*(CL*(Clbeta_CL_half_sweep*KM_sweep + Clbeta_CL_A) + dihedral_w*Clbeta_dihedral*KM_dihedral)
     L_v_body = (180*np.sqrt(AR_w)*d)/(np.pi*b_w)*(-0.0005*d/b_w-2.4*np.pi*z_w/(180*b_w))
     L_v = L_v_fin + L_v_wing + L_v_body
-    print("L_v: ", L_v)
+    print("L_v: ", L_v, L_v_fin, L_v_wing, L_v_body)
     L_v = L_v*0.5*rho*V0*S_w_total*b_w
 
     # L_p

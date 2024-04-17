@@ -7,7 +7,7 @@ from data import *
 from functions import *
 from cycler import cycler
 
-"""plt.rcdefaults()  # restore the defaults
+plt.rcdefaults()  # restore the defaults
 
 custom_colors = ['#00707f', '#f07f3c', '#7db928', '#ffd000', '#e62d31', '#5b57a2']
 custom_cycler = cycler(color=custom_colors)
@@ -17,7 +17,7 @@ plt.rcParams.update({
     'text.latex.preamble': '\\usepackage{stix2}',
     'font.family': 'serif',
     'font.serif': 'stix2'
-})"""
+})
 #************************************************
 #*** Pitch stability diagram of the sailplane *** 
 #************************************************
