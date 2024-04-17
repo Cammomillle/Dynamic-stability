@@ -9,7 +9,7 @@ from cycler import cycler
 
 plt.rcdefaults()  # restore the defaults
 
-custom_colors = ['#00707f', '#f07f3c', '#7db928', '#ffd000', '#e62d31', '#5b57a2']
+custom_colors = ['#00707f', '#f07f3c', '#7db928', '#ffd000', '#e62d31', '#5b57a2']  # turquoise, orange, green, yellow, red, blue 
 custom_cycler = cycler(color=custom_colors)
 plt.rcParams.update({
     'axes.prop_cycle': custom_cycler,
@@ -67,11 +67,11 @@ def cg_diag():
                       K_n, is_kn_ok = compute_K_n_bis(W_b, x_b, W_crew1[i], W_crew2[j])
                       if(is_kn_ok==True):
                           if(mb1[k]==0):
-                              color='orange'
+                              color='#f07f3c'
                           if(mb2[l]==0):
                               color='deepskyblue'
                           else:
-                              color='orange'
+                              color='#f07f3c'
                           fine=True
                           break
                 

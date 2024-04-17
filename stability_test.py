@@ -26,11 +26,11 @@ plt.rcParams.update({
 
 #******* Weights [kilograms * g] **********
 W_b_crew = 0*g     # ballasts at crew1
-W_b_t = 15*g         # ballasts at tail
+W_b_t = 60*g         # ballasts at tail
 W_b = W_b_crew + W_b_t  # ballasts total weight
 
-W_crew1 = 123*g   # 1 st crew
-W_crew2 = 123*g   # 2 nd crew
+W_crew1 = 40*g   # 1 st crew
+W_crew2 = 0*g   # 2 nd crew
 
 #******* CG of the ballasts **********
 x_b = 0
@@ -41,7 +41,7 @@ def round_formatter(value, pos):
     return round(value, 2) 
 
 def plot_results(x_cg_enveloppe, h_n):
-    plt.figure(6.4,2)
+    
     x_n = h_n*c_mac_w
     x_cg_min = compute_x_cg(60*g, x_b_w, 40*g, 0) # CG position for 1 crew of 90lb
     x_cg_max = compute_x_cg(15*g, x_b_t, 122*g, 122*g) # CG position for 2 crews of 270lb each
