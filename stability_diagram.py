@@ -9,7 +9,7 @@ from cycler import cycler
 
 plt.rcdefaults()  # restore the defaults
 
-custom_colors = ['#00707f', '#f07f3c', '#7db928', '#ffd000', '#e62d31', '#5b57a2']
+custom_colors = ['#00707f', '#f07f3c', '#7db928', '#ffd000', '#e62d31', '#5b57a2']  # turquoise, orange, green, yellow, red, blue 
 custom_cycler = cycler(color=custom_colors)
 plt.rcParams.update({
     'axes.prop_cycle': custom_cycler,
@@ -59,9 +59,9 @@ def plot_polygone(ax,x_ok,y_ok,color):
     y_surface.append(y_surface[0])
     ax.fill(x_surface,y_surface,facecolor=color,edgecolor='black',linewidth=0.3,alpha=1)
 def cg_diag():
-    W_crew1=np.linspace(0,400,150) # lbs
+    W_crew1=np.linspace(0,400,20) # lbs
     W_crew1=W_crew1*0.4536*g # N
-    W_crew2=np.linspace(0,400, 150) # lbs
+    W_crew2=np.linspace(0,400, 20) # lbs
     W_crew2=W_crew2*0.4536*g # N 
     x_ok=[]
     x_ok_ballast_tail=[]
@@ -122,7 +122,6 @@ def cg_diag():
                           break
                 
               if(fine==False):
-                  
                   ax2.scatter(W_crew2[j]/(0.4536*g),W_crew1[i]/(0.4536*g),color='#e62d31')
               else:
                   ax2.scatter(W_crew2[j]/(0.4536*g),W_crew1[i]/(0.4536*g),color=color)

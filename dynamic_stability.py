@@ -13,7 +13,7 @@ THE FOLLOWING VALUES MUST CHANGE !!
 CD0=0.00964
 T=-4.8+273.15 # temperature at 10 000 ft
 nu = 1.694*10**(-5) #Ns/m^2
-rho = 1.056 # at 10,000 feet (assumed equilibrium position)                                                         !!!!!!!!!!!!!!!!!!!!!
+rho = 0.909 # at 10,000 feet (assumed equilibrium position)                                                         !!!!!!!!!!!!!!!!!!!!!
 V0 = 28.809 # m/s
 gamma = 1.4 
 
@@ -465,7 +465,7 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     L_v_wing = 180/np.pi*(CL*(Clbeta_CL_half_sweep*KM_sweep + Clbeta_CL_A) + dihedral_w*Clbeta_dihedral*KM_dihedral)
     L_v_body = (180*np.sqrt(AR_w)*d)/(np.pi*b_w)*(-0.0005*d/b_w-2.4*np.pi*z_w/(180*b_w))
     L_v = L_v_fin + L_v_wing + L_v_body
-    print("L_v: ", L_v, L_v_fin, L_v_wing, L_v_body)
+    print("L_v: ", L_v)
     L_v = L_v*0.5*rho*V0*S_w_total*b_w
 
     # L_p

@@ -173,10 +173,11 @@ h_f_max = 0.974
 alpha_e = 0     # equilibrium aoa
 D_e = 170.378 #N
 
-h_H = 1.646     # vertical distance between x_ac of tail and wing   !!! A MODIFIER !!!
+h_H =  1.14634      # vertical distance between x_ac of horizontal tail and x_ac of wing  
 l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
-z_V = 0.2      # A MODIFIER !!!!!
-z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER !!!
+z_V = 0.81824       # vertical distance between x_ac of fin and x_ac of wing
+#z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w 
+z_w = 0.248         # vertical distance positive downward between quarter chord of wing and sailplane centerline 
 d = 0.4956851278    # = sqrt(averag fusegale cross sectional area/0.7854) from slide 13 lat. deriv. 
 d_fus = 0.637       # fuselage diameter (mean value)
 alpha_dcl = -0.63   # fin flap value (extracted from slide 65)
