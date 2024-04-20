@@ -40,6 +40,7 @@ lambda_w = 0.4      # Taper ratio of the wing
 c_w_root = 1.28571  # Chord of the wing at the root
 c_w_tip = 0.51429   # Chord of the wing at the tip
 c_mac_w = 2/3 * c_w_root * (1 + lambda_w + lambda_w**2)/(1 + lambda_w)  # mean aerodynamic chord of the wing
+y_mac_w = (b_w)/6*(1+2*lambda_w)/(1+lambda_w)
 sweep_w = -1.105*np.pi/80       # Sweep angle of the wing (quarter chord)
 sweep_w_half = -2.2089*np.pi/180 # Sweep angle of the wing (half chord)
 sweep_w_le = 0  # sweep angle of the wing at the le
@@ -68,7 +69,7 @@ b_v = 1.5          # span of the fin
 S_fin = (c_v_root+c_v_tip)*b_v/2   # surface of the fin (vertical tail)
 lambda_v = c_v_tip/c_v_root         # taper ratio of the fin
 c_mac_v = 2/3 * c_v_root * (1 + lambda_v + lambda_v**2)/(1 + lambda_v)  # mean aerodynamic chord of the fin
-y_mac_v = 0.698    # à vérifier !!!
+y_mac_v = (b_v*2)/6*(1+2*lambda_v)/(1+lambda_v)
 AR_v = b_v**2/S_fin   # AR of the horizontal empennage
 sweep_v = np.arctan((0.75*c_v_root + np.tan(8*np.pi/180)*b_v - 0.75*c_v_tip)/b_v)  
 sweep_v_half = np.arctan((0.5*c_v_root + np.tan(8*np.pi/180)*b_v - 0.5*c_v_tip)/b_v) # Sweep angle of the fin at the half chord
@@ -172,17 +173,14 @@ h_f_max = 0.974
 alpha_e = 0     # equilibrium aoa
 D_e = 170.378 #N
 
-h_H = 1.646     # vertical distance between x_ac of tail and wing   !!! à vérifier !!!
+h_H = 1.646     # vertical distance between x_ac of tail and wing   !!! A MODIFIER !!!
 l_H = x_ac_h - x_ac_w # horitontal distance between x_ac of tail and wing
 z_V = 0.2      # A MODIFIER !!!!!
-z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER ???
-d = 0.4956851278    # = sqrt(averag fusegale cross sectional area/0.7854) from slide 13 lat. deriv. !! value that could change !!! 
+z_w = pe.ml_i(x_ac_w*1000)/1000 - y_ac_root_w # vertical distance positive downward between quarter chord of wing and sailplane centerline -> A MODIFIER !!!
+d = 0.4956851278    # = sqrt(averag fusegale cross sectional area/0.7854) from slide 13 lat. deriv. 
 d_fus = 0.637       # fuselage diameter (mean value)
 alpha_dcl = -0.63   # fin flap value (extracted from slide 65)
 alpha_dcl_ratio = 1.05 # fin flap value ratio (extracted from slide 65; conservative value)
-
-eta = 20*np.pi/180  # max elevator deflection   
-df = 30*np.pi/180   # max rudder deflection                               
 
 Ix = 3383.31944 + 18.580411
 Iy = 1320.1079 + 1331.37325
