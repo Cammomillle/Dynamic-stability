@@ -132,7 +132,7 @@ x_t_h = x_debut_tail_h + 0.276
 x_crew1 = 1.435       # crew member 1
 x_crew2 = 2.575       # crew member 2
 
-x_b_w = x_crew1     # ballast au CG du crew 1
+x_b_w = 0.2         # ballast au nez du planeur
 x_b_t = x_t_v       # ballast au CG du fin
 
 x_fus = 3.3                # fuselage

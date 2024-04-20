@@ -25,12 +25,12 @@ plt.rcParams.update({
 #**********************************************************************************************
 
 #******* Weights [kilograms * g] **********
-W_b_crew = 0*g     # ballasts at crew1
-W_b_t = 60*g         # ballasts at tail
+W_b_crew = 15*g     # ballasts at crew1
+W_b_t = 0*g         # ballasts at tail
 W_b = W_b_crew + W_b_t  # ballasts total weight
 
-W_crew1 = 40*g   # 1 st crew
-W_crew2 = 0*g   # 2 nd crew
+W_crew1 = 123*g   # 1 st crew
+W_crew2 = 123*g   # 2 nd crew
 
 #******* CG of the ballasts **********
 x_b = 0
@@ -41,13 +41,12 @@ def round_formatter(value, pos):
     return round(value, 2) 
 
 def plot_results(x_cg_enveloppe, h_n):
-    
     x_n = h_n*c_mac_w
-    x_cg_min = compute_x_cg(60*g, x_b_w, 40*g, 0) # CG position for 1 crew of 90lb
+    x_cg_min = compute_x_cg(30*g, x_b_w, 40*g, 0) # CG position for 1 crew of 90lb
     x_cg_max = compute_x_cg(15*g, x_b_t, 122*g, 122*g) # CG position for 2 crews of 270lb each
     plt.scatter([x_cg_enveloppe[0]*3.28084,x_cg_enveloppe[1]*3.28084],[0,0],label="Static margin range",color="#f07f3c", s=80)
-    plt.scatter(x_ac_w*3.28084,0,label="AC", s=80, color='#7db928')
-    plt.scatter(x_n*3.28084,0,label="NP", s=80, color='#e62d31')
+    plt.scatter(x_ac_w*3.28084,0,label="AC", s=80, color='#7db928')     # green
+    plt.scatter(x_n*3.28084,0,label="NP", s=80, color='#e62d31')    # red
     plt.scatter([x_cg_min*3.28084, x_cg_max*3.28084], [0,0], label="CG variation", s=80, color='#00707f')
     #plt.scatter([compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w)*3.28084, (compute_x_mac(x_debut_wing, b_w, lambda_w, sweep_w) + c_mac_w)*3.28084], [0,0], label="Wing MAC", s=80, color="magenta")
     plt.plot([2.6*3.28084,3.7*3.28084],[0,0],color="black")
@@ -108,7 +107,7 @@ def ballast_positions():
                 print("Stable without ballasts")
                 return x_cg
             if is_kn_ok==False:
-              m_lim_tot=60 #Total ballast weight admissible
+              m_lim_tot=45 #Total ballast weight admissible
               m_lim_tail=15 #Maximum ballast weight at the tail 
               m_lim_crew=m_lim_tot-m_lim_tail #Maximum ballast weight under the crew
               mb1=np.arange(0,m_lim_crew+1,7.5)*g
@@ -199,6 +198,7 @@ if is_kn_ok == False:
     #h=compute_h(x_cg)
     #h_n=compute_hn(x_cg)
     #K_n=compute_K_n(h_n, h)
+    x_cg = compute_x_cg(W_ballasts, x_cg_ballasts, W_crew1, W_crew2)
     K_n=compute_K_n_bis(W_ballasts, x_cg_ballasts, W_crew1, W_crew2)[0]
     h_n = K_n + x_cg/c_mac_w
     print("Pitch stability Kn: ", K_n, "[-]")

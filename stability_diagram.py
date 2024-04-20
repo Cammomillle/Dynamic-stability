@@ -61,7 +61,7 @@ def plot_polygone(ax,x_ok,y_ok,color):
 def cg_diag():
     W_crew1=np.linspace(0,400,20) # lbs
     W_crew1=W_crew1*0.4536*g # N
-    W_crew2=np.linspace(0,400, 20) # lbs
+    W_crew2=np.linspace(0,400,20) # lbs
     W_crew2=W_crew2*0.4536*g # N 
     x_ok=[]
     x_ok_ballast_tail=[]
@@ -91,7 +91,7 @@ def cg_diag():
                 y_ok.append(W_crew1[i]/(0.4536*g))
 
             if is_kn_ok==False:
-              m_lim_tot=60 #Total ballast weight admissible
+              m_lim_tot=45 #Total ballast weight admissible
               m_lim_tail=15 #Maximum ballast weight at the tail 
               m_lim_crew=m_lim_tot-m_lim_tail #Maximum ballast weight under the crew
               mb1=np.arange(0,m_lim_crew+1,7.5)*g
