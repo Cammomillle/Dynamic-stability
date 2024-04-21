@@ -10,7 +10,7 @@ from functions import *
 """
 THE FOLLOWING VALUES MUST CHANGE !!
 """
-CD0=0.00964
+CD0=0.01204
 T=-4.8+273.15 # temperature at 10 000 ft
 nu = 1.694*10**(-5) #Ns/m^2
 rho = 0.909 # at 10,000 feet (assumed equilibrium position)                                                         !!!!!!!!!!!!!!!!!!!!!
