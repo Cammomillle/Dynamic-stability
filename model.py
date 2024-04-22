@@ -4,13 +4,14 @@ from scipy.optimize import fmin
 from data import *
 from airfoil import *
 from cycler import cycler
+import atmosphere as atm
 
 custom_colors = ['#00707f', '#f07f3c', '#7db928', '#ffd000', '#e62d31', '#5b57a2']
 custom_cycler = cycler(color=custom_colors)
 plt.rcParams.update({
     'axes.prop_cycle': custom_cycler,
     'text.usetex': True,
-    'text.latex.preamble': '\\usepackage{stix2}',
+    'text.latex.preamble': '\\usepackage{stix2,siunitx}',
     'font.family': 'serif',
     'font.serif': 'stix2'
 })
@@ -200,6 +201,8 @@ def Fuselage_CDmisc(f, alpha, ctx):
     # Wheels
     fr = 0.3556*0.11938 + 0.1524*0.03048
     CD_wheels = 0.22*fr/w.S
+    #print('Back', 0.22*0.1524*0.03048/w.S)
+    #print('Rear', 0.22*0.3556*0.11938/w.S)
 
     # Cockpit/canopy (well streamlined cylindrical mid-section)
     S_canopy = 0.4*Ac # approximation
@@ -238,8 +241,9 @@ ctx.alpha = 0/180 * np.pi
 ctx.alpha_e = 0
 ctx.beta = 0
 ctx.V = 32
-ctx.rho = 1.2
-ctx.mu = 1.7e-5
+ctx.H = 1066.8
+ctx.rho = atm.density(ctx.H)
+ctx.mu = atm.viscosity(ctx.H)
 
 v = Wing()
 v.foil = naca0012
@@ -292,6 +296,28 @@ fus.mCDif = Fuselage_CDif
 fus.mCDmisc = Fuselage_CDmisc
 
 @np.vectorize
+def CL_VLM(alpha, ctx):
+    a = 6.02
+    alpha0 = -5.46/180*np.pi
+    return a * (alpha - alpha0)
+
+def CL_max(ctx):
+    Re_root = ctx.V*ctx.rho*w.c_root/ctx.mu
+    Re_tip = ctx.V*ctx.rho*w.c_tip/ctx.mu
+    return 0.95*(w.foil.Cl_max(Re_tip) + w.foil.Cl_max(Re_root))/2
+
+def CL_stall(m, ctx):
+    V = ctx.V
+    for _ in range(10):
+        Re_root = V*ctx.rho*w.c_root/ctx.mu
+        Re_tip = V*ctx.rho*w.c_tip/ctx.mu
+        Cl_tip = w.foil.Cl_max(Re_tip)
+        Cl_root = w.foil.Cl_max(Re_root)
+        Cl_max = 0.95 * (Cl_tip + Cl_root)/2
+        V = np.sqrt(m*9.81/(0.5*ctx.rho*w.S*Cl_max))
+    return Cl_max, V
+
+@np.vectorize
 def CDv(alpha, ctx):
     a = alpha
     aw = a + theta_w
@@ -303,6 +329,12 @@ def CDin(alpha, ctx):
     aw = a + theta_w
     ah = a - theta_h
     return w.CDin(aw, ctx) + h.CDin(ah, ctx)*h.S/w.S + v.CDin(0, ctx)*v.S/w.S + fus.CDin(a, ctx)
+@np.vectorize
+def CDin_test(alpha, ctx):
+    a = alpha
+    aw = a + theta_w
+    ah = a - theta_h
+    return w.CDin(aw, ctx) + h.CDin(ah, ctx)*h.S/w.S + v.CDin(0, ctx)*v.S/w.S
 @np.vectorize
 def CDif(alpha, ctx):
     a = alpha
@@ -322,28 +354,209 @@ def CD0(alpha, ctx):
 def CD(alpha, ctx):
     return CDv(alpha, ctx) + CDin(alpha, ctx) + CDif(alpha, ctx) + CDmisc(alpha, ctx)
 
+
+print('alpha0', w.foil.alpha0(w.Re_mac(ctx))/np.pi*180)
+print('alpha_max', w.foil.alpha_max(w.Re_mac(ctx))/np.pi*180)
+print('CL_max', CL_max(ctx))
+print('a', w.CL_alpha(ctx))
 print('CD(0)', CD(0/180*np.pi, ctx))
 print('CD0(0)', CD0(0/180*np.pi, ctx))
-print('RE', fus.Re(ctx))
+print('RE', w.Re_mac(ctx))
 
-alpha = np.linspace(-1, 5, 100)/180*np.pi
-cdv = CDv(alpha, ctx)
-plt.plot(alpha/np.pi*180, cdv, label='$C_{D,\\mathrm{v}}$')
-plt.fill_between(alpha/np.pi*180, cdv, alpha=0.5)
-cdin = cdv + CDin(alpha, ctx)
-plt.plot(alpha/np.pi*180, cdin, label='$+ C_{D,\\mathrm{in}}$')
-plt.fill_between(alpha/np.pi*180, cdin, cdv, alpha=0.5)
-cdif = cdin + CDif(alpha, ctx)
-plt.plot(alpha/np.pi*180, cdif, label='$+ C_{D,\\mathrm{if}}$')
-plt.fill_between(alpha/np.pi*180, cdif, cdin, alpha=0.5)
-cdmisc = cdif + CDmisc(alpha, ctx)
-plt.plot(alpha/np.pi*180, cdmisc, label='$+ C_{D,\\mathrm{misc}}$')
-plt.fill_between(alpha/np.pi*180, cdmisc, cdif, alpha=0.5)
-plt.xlabel('Angle of attack [°]')
-plt.ylabel('Drag coefficient $C_D$')
+# working: fx = 4
+fx = 3.8
+figAR = 1.33144073811
+
+# Airfoil polars
+alphad = np.linspace(-10, 18, 100)
+alpha = alphad/180*np.pi
+Res = np.array([1e6, 1.5e6, 2e6, 2.5e6])
+plt.figure(figsize=(fx, fx/figAR))
+for Re in Res:
+    plt.plot(alphad, w.foil.Cl(alpha, Re), label='Re = %.2E' % Re)
+plt.xlabel('Angle of attack [\\SI{}{\\degree}]')
+plt.ylabel('Lift coefficient')
 plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig('airfoil_cl.pdf')
 plt.show()
 
+plt.figure(figsize=(fx, fx/figAR))
+for Re in Res:
+    plt.plot(w.foil.Cd(alpha, Re), w.foil.Cl(alpha, Re), label='Re = %.2E' % Re)
+plt.xlabel('Drag coefficient')
+plt.ylabel('Lift coefficient')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig('airfoil_polar.pdf')
+plt.show()
+
+plt.figure(figsize=(fx, fx/figAR))
+for Re in Res:
+    plt.plot(alphad, w.foil.Cl(alpha, Re)/w.foil.Cd(alpha, Re), label='Re = %.2E' % Re)
+plt.xlabel('Angle of attack [\\SI{}{\\degree}]')
+plt.ylabel('Lift-to-drag ratio')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig('airfoil_ltd.pdf')
+plt.show()
+
+plt.figure(figsize=(fx, fx/figAR))
+for Re in Res:
+    plt.plot(alphad, w.foil.Cm(alpha, Re), label='Re = %.2E' % Re)
+plt.xlabel('Angle of attack [\\SI{}{\\degree}]')
+plt.ylabel('Moment coefficient')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig('airfoil_cm.pdf')
+plt.show()
+exit(0)
+
+# Stall speed
+m = np.linspace(580, 700, 100)
+Vs = np.zeros_like(m)
+CLs_max = np.zeros_like(m)
+for i, mm in enumerate(m):
+    a, b = CL_stall(mm, ctx)
+    CLs_max[i] = a
+    Vs[i] = b
+plt.figure(figsize=(6.5, 3/0.9*0.94))
+plt.plot(m*2.20462262, Vs*1.94384449)
+plt.axvline(1322.77357, linestyle='--', c='#8c8b82')
+plt.text(1322.77357, 0.5, 'Nominal', color='#8c8b82', ha='right', va='top', rotation=90,
+            transform=plt.gca().get_xaxis_transform())
+plt.axvline(1543.23584, linestyle='--', c='#8c8b82')
+plt.text(1543.23584, 0.5, 'Max.', color='#8c8b82', ha='right', va='top', rotation=90,
+            transform=plt.gca().get_xaxis_transform())
+plt.xlabel('Takeoff weight [lb]')
+plt.ylabel('Stall speed [kt]')
+plt.grid()
+plt.tight_layout()
+plt.savefig('m_vstall.pdf')
+plt.show()
+
+plt.plot(m*2.20462262, CLs_max)
+plt.show()
+
+# plt.figure(figsize=(7, 3/0.9*0.94))
+# alpha = np.linspace(-1, 8, 100)/180*np.pi
+# alphad = alpha*180/np.pi
+# cdv = CDv(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdv, label='$C_{D,\\mathrm{visc.}}$')
+# plt.fill_between(alpha/np.pi*180, cdv, alpha=0.5)
+# cdin = cdv + CDin(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdin, label='$+ C_{D,\\mathrm{ind.}}$')
+# plt.fill_between(alpha/np.pi*180, cdin, cdv, alpha=0.5)
+# cdif = cdin + CDif(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdif, label='$+ C_{D,\\mathrm{int.}}$')
+# plt.fill_between(alpha/np.pi*180, cdif, cdin, alpha=0.5)
+# cdmisc = cdif + CDmisc(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdmisc, label='$+ C_{D,\\mathrm{misc.}}$')
+# plt.fill_between(alpha/np.pi*180, cdmisc, cdif, alpha=0.5)
+# plt.axvline(0, linestyle='--', c='#8c8b82')
+# plt.text(0, 0.52, 'Cruise', color='#8c8b82', ha='right', va='top', rotation=90,
+#             transform=plt.gca().get_xaxis_transform())
+# plt.xlabel('Angle of attack [°]')
+# plt.ylabel('Drag coefficient $C_D$')
+# plt.xticks(np.arange(min(alphad), max(alphad)+1, 1.0))
+# plt.yticks(np.arange(0.0, max(cdmisc), 0.005))
+# plt.legend(loc='upper left')
+# plt.tight_layout()
+# plt.savefig('drag.pdf')
+# plt.show()
+
+# plt.figure(figsize=(7, 3/0.9*0.94))
+# alpha = np.linspace(-1, 8, 100)/180*np.pi
+# alphad = alpha*180/np.pi
+# cdtot = CD(alpha, ctx)
+# cdv = CDv(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdv/cdtot*100, label='$C_{D,\\mathrm{visc.}}$')
+# cdin = CDin(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdin/cdtot*100, label='$C_{D,\\mathrm{ind.}}$')
+# cdif = CDif(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdif/cdtot*100, label='$C_{D,\\mathrm{int.}}$')
+# cdmisc = CDmisc(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdmisc/cdtot*100, label='$C_{D,\\mathrm{misc.}}$')
+# plt.axvline(0, linestyle='--', c='#8c8b82')
+# plt.text(0, 0.52, 'Cruise', color='#8c8b82', ha='right', va='top', rotation=90,
+#             transform=plt.gca().get_xaxis_transform())
+# plt.xlabel('Angle of attack [°]')
+# plt.ylabel('Percentage of total drag [\\%]')
+# plt.xticks(np.arange(min(alphad), max(alphad)+1, 1.0))
+# plt.legend(loc='upper left')
+# plt.tight_layout()
+# plt.savefig('drag_repartition.pdf')
+# plt.show()
+
+# plt.figure(figsize=(7, 3/0.9*0.94))
+# alpha = np.linspace(-1, 8, 100)/180*np.pi
+# alphad = alpha*180/np.pi
+# cdin = CDin_test(alpha, ctx)
+# plt.plot(alpha/np.pi*180, cdin, label='$C_{D,\\mathrm{ind.}}$')
+# plt.axvline(0, linestyle='--', c='#8c8b82')
+# plt.text(0, 0.52, 'Cruise', color='#8c8b82', ha='right', va='top', rotation=90,
+#             transform=plt.gca().get_xaxis_transform())
+# plt.xlabel('Angle of attack [°]')
+# plt.ylabel('Percentage of total drag [\\%]')
+# plt.xticks(np.arange(min(alphad), max(alphad)+1, 1.0))
+# plt.legend(loc='upper left')
+# plt.tight_layout()
+# plt.savefig('drag_repartition.pdf')
+# plt.show()
+
+# Polar
+#plt.figure(figsize=(5, 4))
+# alpha = np.linspace(-10, 15, 100)/180*np.pi
+# alphad = alpha*180/np.pi
+# clt = CL_VLM(alpha, ctx)
+# cdt = CD(alpha, ctx)
+# plt.plot(cdt, clt)
+# sampler = len(alphad)//20
+# alphads = alphad[::sampler]
+# cdts = cdt[::sampler]
+# clts = clt[::sampler]
+# plt.scatter(cdts, clts, marker='^', color='black')
+# for i, val in enumerate(alphads):
+#     plt.annotate('\\SI{%.1f}{\\degree}' % (val), (cdts[i], clts[i]), xytext=(-0.6, -0.4), textcoords='offset fontsize', horizontalalignment='right')
+# plt.xlabel('Drag coefficient $C_D$')
+# plt.ylabel('Lift coefficient $C_L$')
+# plt.xlim(xmin=0, xmax=0.05)
+# plt.ylim(ymin=-0.6, ymax=1.5)
+# plt.grid()
+# plt.text(0.002, 0.575 + 0.0275, 'Cruise $C_L$', c='#8c8b82')
+# plt.axhline(0.575, linestyle='--', c='#8c8b82')
+# plt.savefig('polar.pdf', bbox_inches='tight')
+# plt.show()
+
+# LtD
+alpha = np.linspace(-4, 10, 100)/180*np.pi
+alphad = alpha*180/np.pi
+clt = CL_VLM(alpha, ctx)
+cdt = CD(alpha, ctx)
+plt.plot(alphad, clt/cdt)
+sampler = len(alphad)//15
+alphads = alphad[::sampler]
+cdts = cdt[::sampler]
+clts = clt[::sampler]
+ltds = clts/cdts
+plt.scatter(alphads, ltds, marker='^', color='black')
+for i, vclts in enumerate(clts):
+    val = np.sqrt(600*9.81 / (0.5 * ctx.rho * 18 * vclts))
+    plt.annotate('$%.1f$' % (val * 1.944), (alphads[i], ltds[i]), xytext=(-0.6, -0.4), textcoords='offset fontsize', horizontalalignment='right')
+plt.xlabel('Angle of attack [\\SI{}{\degree}]')
+plt.ylabel('Lift-to-drag ratio')
+plt.axhline(30, linestyle='-', c='#7db928')
+plt.axhline(25, linestyle='-', c='#e62d31')
+plt.axvline(0, linestyle='--', c='#8c8b82')
+plt.text(0, 0.52, 'Cruise', color='#8c8b82', ha='right', va='top', rotation=90,
+            transform=plt.gca().get_xaxis_transform())
+plt.grid()
+plt.savefig('ltd.pdf', bbox_inches='tight')
+plt.show()
 
 exit(0)
 

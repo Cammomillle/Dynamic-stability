@@ -42,6 +42,9 @@ class Airfoil:
     def alpha0(self, Re):
         return fmin(lambda x: self.Cl(x, Re)**2, 0, disp=False)[0]
     
+    def alpha_max(self, Re):
+        return fmin(lambda x: -self.Cl(x, Re), 0, disp=False)[0]
+
     def Cl_max(self, Re):
         r = fmin(lambda x: -self.Cl(x, Re), 0, disp=False)[0]
         return self.Cl(r, Re)
