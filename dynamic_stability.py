@@ -10,10 +10,10 @@ from functions import *
 """
 THE FOLLOWING VALUES MUST CHANGE !!
 """
-CD0=0.00964
-T=-4.8+273.15 # temperature at 10 000 ft ! ->    shit ass guess !!!!
+CD0=0.01204
+T=-4.8+273.15 # temperature at 10 000 ft
 nu = 1.694*10**(-5) #Ns/m^2
-rho = 0.909 # at 10,000 feet (assumed equilibrium position)
+rho = 0.909 # at 10,000 feet (assumed equilibrium position)                                                         !!!!!!!!!!!!!!!!!!!!!
 V0 = 28.809 # m/s
 gamma = 1.4 
 
@@ -135,7 +135,7 @@ def alpha_derivatives(W_b,x_b,W_crew1,W_crew2,V0):
     M_alpha = 0.5*rho*V0**2 / 36.5 * body_sum(Mach, x_cg)
     d_xac = -M_alpha / (0.5*rho*V0**2 * S_w_total * c_mac_w * CL_alpha_wing(Mach))
     x_acwb = x_ac_w/c_mac_w + d_xac
-    num = x_acwb + CL_alpha_horizontal_tail(Mach)/CL_alpha_WB * eta_h * S_h/S_w_total * x_ac_h/c_mac_w * (1-grad_downwash)  # diviser x_ac par c_mac ? 
+    num = x_acwb + CL_alpha_horizontal_tail(Mach)/CL_alpha_WB * eta_h * S_h/S_w_total * x_ac_h/c_mac_w * (1-grad_downwash)
     den = 1 + CL_alpha_horizontal_tail(Mach)/CL_alpha_WB * eta_h * S_h/S_w_total * (1-grad_downwash)
     x_ac = num/den
     Kn = -(x_cg/c_mac_w-x_ac)
@@ -159,7 +159,7 @@ def u_derivatives(W_b,x_b,W_crew1,W_crew2,V0,alpha,alpha_0):
     #CL_u=Mach**2/(1-Mach**2) * CL_for_mach # ATTENTION recompute CL for the given mach !!
 
     # Calcul alternatif donné par Prof. Dimitriadis
-    CL = compute_CL_bis(Mach, alpha)                     # alpha = alpha_e assumption !!!
+    CL = compute_CL_bis(Mach, alpha)                
     CL_u = 2*CL - alpha_e*CL_alpha_for_mach
     
     #---- CD derivative ----
@@ -406,7 +406,7 @@ def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
 
     # Y_v
     Y_v_fin = Y_betav(M)      
-    Y_v_wing = -0.0001*np.abs(dihedral_w)*180/np.pi                         # Valeur modifiée avec ajout de *180/np.pi  
+    Y_v_wing = -0.0001*np.abs(dihedral_w)*180/np.pi                     
     S0 = compute_S0()
     Ki = compute_Ki()
     Y_v_body = -2*Ki*S0/S_w_total
@@ -431,8 +431,8 @@ def Y_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     Y_r = Y_r*0.5*rho*V0*S_w_total
 
     # Y_zeta (rudder deflection)
-    """eta = 20*np.pi/180                                   # eta = max elevator deflection ?
-    df = 30*np.pi/180                                       # df = max rudder deflection ? pq flaps deflection dans la formule ?
+    """eta = 20*np.pi/180                               
+    df = 30*np.pi/180                                       
     Kb = compute_Kb(eta)
     Kprime = compute_Kprime(df)
     Y_zeta = a_v*alpha_dcl_ratio*alpha_dcl*Kprime*Kb*S_fin/S_w_total"""          
@@ -448,12 +448,13 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     a_w = CL_alpha_wing(M)
     a_v = CL_alpha_vertical_tail(M)
 
-    # L_v - pas modifié
+    # L_v 
     grad_sidewash = sidewash_beta()
     x_cg = compute_x_cg(W_b, x_b, W_crew1, W_crew2)
     l_V = x_ac_v - x_cg
     V_F = (S_fin*l_V)/(S_w_total*b_w)
     beta = np.sqrt(1-M**2)
+    CL = compute_CL_bis(M, alpha)
     
     Clbeta_CL_half_sweep = 0.0002               
     KM_sweep = 1
@@ -461,7 +462,7 @@ def L_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     Clbeta_dihedral = -0.00035
     KM_dihedral = 1.005
     L_v_fin = -V_F*z_V/l_V*a_v*(1-grad_sidewash)
-    L_v_wing = 180/np.pi*( a_w*(Clbeta_CL_half_sweep*KM_sweep + Clbeta_CL_A) + dihedral_w*Clbeta_dihedral)
+    L_v_wing = 180/np.pi*(CL*(Clbeta_CL_half_sweep*KM_sweep + Clbeta_CL_A) + dihedral_w*Clbeta_dihedral*KM_dihedral)
     L_v_body = (180*np.sqrt(AR_w)*d)/(np.pi*b_w)*(-0.0005*d/b_w-2.4*np.pi*z_w/(180*b_w))
     L_v = L_v_fin + L_v_wing + L_v_body
     print("L_v: ", L_v)
@@ -541,7 +542,7 @@ def N_derivatives(W_b,x_b,W_crew1,W_crew2,V0, alpha):
     N_v = N_v*0.5*rho*V0*S_w_total*b_w
 
     # N_p
-    beta_Clp_k = -1.1       # approximatif !!
+    beta_Clp_k = -1.1       
     k = a0_w/(2*np.pi)
     Clp_dihedral = 1 - 2*z_w/(b_w/2)*np.sin(dihedral_w)+3*(z_w/(b_w/2))**2*(np.sin(dihedral_w))**2  # C_lp_Gamma/C_lp_Gamma=0
     L_p_fin = -2*S_fin/S_w_total*a_v*(1-grad_sidewash)*z_V**2/b_w
