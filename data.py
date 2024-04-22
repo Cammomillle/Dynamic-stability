@@ -21,7 +21,7 @@ W_t_h = 10*g    # tail horizontale
 W_t_v = 20*g    # tail verticale
 W_fus = 90*g    # fuselage
 W_motor = 20*g      # motor
-W_batteries = 80*g  # batteries
+W_batteries = 64*g  # batteries
 W_gear = 10*g   # gears
 W_flight_control = 30*g # commandes
 
@@ -137,7 +137,7 @@ x_b_t = x_t_v       # ballast au CG du fin
 
 x_fus = 3.3                # fuselage
 x_motor = 4.               # motor  
-x_batteries = 4.8          # batteries     
+x_batteries = 5.1         # batteries     
 x_main_gear = 3.5          # main gear                          
 x_gear_2 = l_fus-0.55      # last gear                          
 x_gear = (x_main_gear*0.75+x_gear_2*0.25)/(x_main_gear+x_gear_2)
