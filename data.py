@@ -20,7 +20,7 @@ W_w = 160*g     # wings
 W_t_h = 10*g    # tail horizontale
 W_t_v = 20*g    # tail verticale
 W_fus = 90*g    # fuselage
-W_motor = 20*g      # motor
+W_motor = 25*g      # motor
 W_batteries = 64*g  # batteries
 W_gear = 10*g   # gears
 W_flight_control = 30*g # commandes
@@ -104,7 +104,7 @@ sweep_h_le = 5.71*np.pi/180
 theta_h = -1.8*np.pi/180
 
 #Re=879.000 for the horizontal stabilizer. With airfool tools, at Re=1.000.000:
-CD_0_h = 0.014          # same as the wing, from conceptual design, sld 61
+CD_0_h = 0.01204        # same as the wing, from conceptual design, sld 61
 dclh_alpha_h = 6.36     # slope of the CL curve for the tail (2D) for now, same as the fin !!!Re
 dCLh_alpha_h = compute_lift_curve_slope(AR_h, dclh_alpha_h, sweep_h_half, beta=1)  # slope of the C_L of the tail with alpha of the tail   
 
@@ -135,7 +135,7 @@ x_crew2 = 2.575       # crew member 2
 x_b_w = 0.2         # ballast au nez du planeur
 x_b_t = x_t_v       # ballast au CG du fin
 
-x_fus = 3.3                # fuselage
+x_fus = 3.4                # fuselage
 x_motor = 4.               # motor  
 x_batteries = 5.1         # batteries     
 x_main_gear = 3.5          # main gear                          
