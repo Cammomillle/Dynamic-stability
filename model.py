@@ -276,7 +276,7 @@ w = Wing()
 w.foil = fx62k131
 w.c_tip = c_w_tip
 w.c_root = c_w_root
-w.b = b_w
+w.b = b_w*0.9
 w.wl_h = 0.5
 w.wl_tip = w.c_tip * w.taper
 w.tip_offset = 0
@@ -355,12 +355,56 @@ def CD(alpha, ctx):
     return CDv(alpha, ctx) + CDin(alpha, ctx) + CDif(alpha, ctx) + CDmisc(alpha, ctx)
 
 
+# def downwash():
+#     K_A = 1/AR_w - 1/(1+AR_w**1.7)
+#     K_lambda = (10-3*lambda_w)/7
+#     K_H = (1-h_H/b_w)/(np.sqrt(2*l_H/b_w))
+#     grad_down_M0 = 4.44*(K_A*K_lambda*K_H*np.cos(w.sweep(0.25)))**1.19
+#     grad_down = grad_down_M0*1      # approx that CL_alpha,wM/CL_alpha,wM=0 ~ 1
+#     return grad_down 
+
+# print('downwash', downwash())
+
+# def get_KN():
+#     CLw_alpha = w.CL_alpha(ctx)
+
+#     return 2 * S_N / (CLw_alpha * w.S)
+
+# SW_body = pe.b_i((x_debut_wing + c_w_root/2)*1000)/1000 * c_w_root
+# print('SW_body', SW_body)
+
+# w_coef = 1 #get_KN() + 1.03 + 0.05
+# print('KN', get_KN())
+# print('d/b wing', 0.8221144372/w.b)
+# print('d/b tail', 0.8221144372/h.b)
+
+# print((w.S - SW_body)/w.S)
+
+# def CL_alpha():
+#     w_alpha0 = w.foil.alpha0(w.Re_mac(ctx))
+#     h_alpha0 = h.foil.alpha0(h.Re_mac(ctx))
+
+#     return (w.S - SW_body)/w.S * w_coef * w.CL_alpha(ctx) + (1 - downwash()) * h.CL_alpha(ctx) * h.S / w.S
+
+
+# def CL(alpha):
+#     w_alpha0 = w.foil.alpha0(w.Re_mac(ctx))
+#     h_alpha0 = h.foil.alpha0(h.Re_mac(ctx))
+
+#     return (w.S - SW_body)/w.S * w_coef * w.CL_alpha(ctx) * (alpha + theta_w - w_alpha0), (1 - downwash()) * h.CL_alpha(ctx) * h.S / w.S * (alpha + theta_h)
+
 print('alpha0', w.foil.alpha0(w.Re_mac(ctx))/np.pi*180)
 print('alpha_max', w.foil.alpha_max(w.Re_mac(ctx))/np.pi*180)
 print('CL_max', CL_max(ctx))
 print('a', w.CL_alpha(ctx))
 print('CD(0)', CD(0/180*np.pi, ctx))
+print('CD(TO)', CD(9.7/180*np.pi, ctx))
 print('CD0(0)', CD0(0/180*np.pi, ctx))
+print('D_in(0)', 0.5*ctx.rho*w.S*ctx.V**2*CDin(0/180*np.pi, ctx))
+print('D_zl(0)', 0.5*ctx.rho*w.S*ctx.V**2*(CDv(0/180*np.pi, ctx) + CDif(0/180*np.pi, ctx) + CDmisc(0/180*np.pi, ctx)))
+# clw, clt = CL(0/180*np.pi)
+# print('Lw', 0.5*ctx.rho*w.S*ctx.V**2*clw)
+# print('Lt', 0.5*ctx.rho*w.S*ctx.V**2*clt)
 print('RE', w.Re_mac(ctx))
 
 # working: fx = 4
@@ -414,7 +458,6 @@ plt.grid()
 plt.tight_layout()
 plt.savefig('airfoil_cm.pdf')
 plt.show()
-exit(0)
 
 # Stall speed
 m = np.linspace(580, 700, 100)
