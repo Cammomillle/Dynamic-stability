@@ -276,7 +276,7 @@ w = Wing()
 w.foil = fx62k131
 w.c_tip = c_w_tip
 w.c_root = c_w_root
-w.b = b_w*0.9
+w.b = 20 #b_w
 w.wl_h = 0.5
 w.wl_tip = w.c_tip * w.taper
 w.tip_offset = 0
@@ -299,6 +299,19 @@ fus.mCDmisc = Fuselage_CDmisc
 def CL_VLM(alpha, ctx):
     a = 6.02
     alpha0 = -5.46/180*np.pi
+    
+    #s-:
+    #a = 0.105092*180/np.pi
+    #alpha0 = -6.12663190348/180*np.pi
+
+    #s+:
+    #a = 0.102328*180/np.pi
+    #alpha0 = -5.113165507/180*np.pi
+
+    # alu:
+    #a = 0.103516*180/np.pi
+    #alpha0 = -6.79585764519/180*np.pi
+
     return a * (alpha - alpha0)
 
 def CL_max(ctx):
@@ -393,13 +406,22 @@ def CD(alpha, ctx):
 
 #     return (w.S - SW_body)/w.S * w_coef * w.CL_alpha(ctx) * (alpha + theta_w - w_alpha0), (1 - downwash()) * h.CL_alpha(ctx) * h.S / w.S * (alpha + theta_h)
 
+# span-: 0.2 -2.2
+# span+: -0.1 -1.4
+# s-: 0.6 -0.9
+# s+: -0.4 -2.8
+
 print('alpha0', w.foil.alpha0(w.Re_mac(ctx))/np.pi*180)
 print('alpha_max', w.foil.alpha_max(w.Re_mac(ctx))/np.pi*180)
 print('CL_max', CL_max(ctx))
 print('a', w.CL_alpha(ctx))
+print('CD0(0)', CD0(0/180*np.pi, ctx))
 print('CD(0)', CD(0/180*np.pi, ctx))
 print('CD(TO)', CD(9.7/180*np.pi, ctx))
-print('CD0(0)', CD0(0/180*np.pi, ctx))
+print('CL(0)', CL_VLM(0/180*np.pi, ctx))
+print('CL(TO)', CL_VLM(9.7/180*np.pi, ctx))
+print('LtD(0)', CL_VLM(0/180*np.pi, ctx)/CD(0/180*np.pi, ctx))
+print('LtD(TO)', CL_VLM(9.7/180*np.pi, ctx)/CD(9.7/180*np.pi, ctx))
 print('D_in(0)', 0.5*ctx.rho*w.S*ctx.V**2*CDin(0/180*np.pi, ctx))
 print('D_zl(0)', 0.5*ctx.rho*w.S*ctx.V**2*(CDv(0/180*np.pi, ctx) + CDif(0/180*np.pi, ctx) + CDmisc(0/180*np.pi, ctx)))
 # clw, clt = CL(0/180*np.pi)
@@ -472,8 +494,8 @@ plt.plot(m*2.20462262, Vs*1.94384449)
 plt.axvline(1322.77357, linestyle='--', c='#8c8b82')
 plt.text(1322.77357, 0.5, 'Nominal', color='#8c8b82', ha='right', va='top', rotation=90,
             transform=plt.gca().get_xaxis_transform())
-plt.axvline(1543.23584, linestyle='--', c='#8c8b82')
-plt.text(1543.23584, 0.5, 'Max.', color='#8c8b82', ha='right', va='top', rotation=90,
+plt.axvline(1464, linestyle='--', c='#8c8b82')
+plt.text(1464, 0.5, 'Max.', color='#8c8b82', ha='right', va='top', rotation=90,
             transform=plt.gca().get_xaxis_transform())
 plt.xlabel('Takeoff weight [lb]')
 plt.ylabel('Stall speed [kt]')
